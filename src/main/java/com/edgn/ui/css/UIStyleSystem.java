@@ -182,6 +182,7 @@ public class UIStyleSystem {
         styleValues.put(StyleKey.SHADOW_LG, Shadow.LG);
         styleValues.put(StyleKey.SHADOW_XL, Shadow.XL);
         styleValues.put(StyleKey.SHADOW_GLOW, Shadow.GLOW);
+
         styleValues.put(StyleKey.HOVER_SCALE, 1.05f);
         styleValues.put(StyleKey.HOVER_BRIGHTEN, 1.2f);
         styleValues.put(StyleKey.HOVER_OPACITY, 0.8f);

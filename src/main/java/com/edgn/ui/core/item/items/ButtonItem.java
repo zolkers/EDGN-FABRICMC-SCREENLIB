@@ -1,84 +1,402 @@
 package com.edgn.ui.core.item.items;
 
-import com.edgn.ui.core.ElementHost;
-import com.edgn.ui.core.component.components.TextComponent;
+import com.edgn.ui.core.components.TextComponent;
 import com.edgn.ui.core.item.BaseItem;
+import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
+import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.layout.LayoutConstraints;
+import com.edgn.ui.layout.ZIndex;
+import com.edgn.ui.utils.Render2D;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
-public class ButtonItem extends BaseItem implements ElementHost {
+@SuppressWarnings({"unused", "unchecked", "UnusedReturnValue"})
+public class ButtonItem extends BaseItem {
     private TextComponent textComponent;
+    private int textSafetyMargin = 8;
 
     public ButtonItem(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
+        addClass(StyleKey.PRIMARY, StyleKey.ROUNDED_MD, StyleKey.P_2, StyleKey.TEXT_WHITE);
+    }
+
+    public ButtonItem(UIStyleSystem styleSystem, int x, int y, int width, int height, String text) {
+        super(styleSystem, x, y, width, height);
+        addClass(StyleKey.PRIMARY, StyleKey.ROUNDED_MD, StyleKey.P_2, StyleKey.TEXT_WHITE);
+        this.setText(text);
+    }
+
+    public ButtonItem(UIStyleSystem styleSystem, int x, int y, int width, int height, TextComponent textComponent) {
+        super(styleSystem, x, y, width, height);
+        addClass(StyleKey.PRIMARY, StyleKey.ROUNDED_MD, StyleKey.P_2, StyleKey.TEXT_WHITE);
+        this.setText(textComponent);
+    }
+
+    public ButtonItem withText(String text) {
+        if (text != null && !text.isEmpty()) {
+            this.textComponent = new TextComponent(text, textRenderer)
+                    .align(TextComponent.TextAlign.CENTER)
+                    .verticalAlign(TextComponent.VerticalAlign.MIDDLE)
+                    .truncate()
+                    .setSafetyMargin(textSafetyMargin);
+        }
+        return this;
+    }
+
+    public ButtonItem withText(TextComponent textComponent) {
+        if (textComponent != null) {
+            this.textComponent = textComponent
+                    .setOverflowMode(TextComponent.TextOverflowMode.TRUNCATE)
+                    .setSafetyMargin(textSafetyMargin)
+                    .align(TextComponent.TextAlign.CENTER)
+                    .verticalAlign(TextComponent.VerticalAlign.MIDDLE);
+        }
+        return this;
     }
 
     public ButtonItem setText(String text) {
-        this.textComponent = new TextComponent(text, textRenderer);
+        return withText(text);
+    }
+
+    public ButtonItem setText(TextComponent text) {
+        return withText(text);
+    }
+
+    public ButtonItem setTextSafetyMargin(int margin) {
+        this.textSafetyMargin = Math.max(0, margin);
+        if (textComponent != null) {
+            textComponent.setSafetyMargin(this.textSafetyMargin);
+        }
+        return this;
+    }
+
+    public ButtonItem setEllipsis(String ellipsis) {
+        if (textComponent != null) {
+            textComponent.setEllipsis(ellipsis);
+        }
+        return this;
+    }
+
+    public ButtonItem textColor(int color) {
+        if (textComponent != null) {
+            textComponent.color(color);
+        }
+        return this;
+    }
+
+    public ButtonItem textBold() {
+        if (textComponent != null) {
+            textComponent.bold();
+        }
+        return this;
+    }
+
+    public ButtonItem textItalic() {
+        if (textComponent != null) {
+            textComponent.italic();
+        }
+        return this;
+    }
+
+    public ButtonItem textShadow() {
+        if (textComponent != null) {
+            textComponent.shadow();
+        }
+        return this;
+    }
+
+    public ButtonItem textGlow() {
+        if (textComponent != null) {
+            textComponent.glow();
+        }
+        return this;
+    }
+
+    public ButtonItem textGlow(int color) {
+        if (textComponent != null) {
+            textComponent.glow(color);
+        }
+        return this;
+    }
+
+    public ButtonItem textPulse() {
+        if (textComponent != null) {
+            textComponent.pulse();
+        }
+        return this;
+    }
+
+    public ButtonItem textWave() {
+        if (textComponent != null) {
+            textComponent.wave();
+        }
+        return this;
+    }
+
+    public ButtonItem textTypewriter() {
+        if (textComponent != null) {
+            textComponent.typewriter();
+        }
+        return this;
+    }
+
+    public ButtonItem textRainbow() {
+        if (textComponent != null) {
+            textComponent.rainbow();
+        }
+        return this;
+    }
+
+    public TextComponent getTextComponent() {
+        return textComponent;
+    }
+
+    public String getText() {
+        return textComponent != null ? textComponent.getText() : "";
+    }
+
+    public boolean hasText() {
+        return textComponent != null && !textComponent.getText().isEmpty();
+    }
+
+    @Override
+    public void setWidth(int width) {
+        super.setWidth(width);
+    }
+
+    @Override
+    public boolean onMouseClick(double mouseX, double mouseY, int button) {
+        if (enabled && contains(mouseX, mouseY)) {
+            setState(ItemState.PRESSED);
+            return super.onMouseClick(mouseX, mouseY, button);
+        }
+        return false;
+    }
+
+    @Override
+    public void onMouseEnter() {
+        super.onMouseEnter();
+        if (textComponent != null && !textComponent.getActiveAnimations().isEmpty()) {
+            textComponent.startAnimation();
+        }
+    }
+
+    @Override
+    public void render(DrawContext context) {
+        if (!visible) return;
+
+        int bgColor = getStateColor();
+        int borderRadius = getBorderRadius();
+        Shadow shadow = getShadow();
+
+        float animationProgress = getAnimationProgress();
+
+        if (state == ItemState.HOVERED && hasClass(StyleKey.HOVER_SCALE)) {
+            float scale = 1.0f + (0.05f * animationProgress);
+            int scaledWidth = (int) (width * scale);
+            int scaledHeight = (int) (height * scale);
+            int offsetX = (scaledWidth - width) / 2;
+            int offsetY = (scaledHeight - height) / 2;
+
+            if (shadow != null) {
+                Render2D.drawShadow(context, x - offsetX, y - offsetY, scaledWidth, scaledHeight, 3, 3, shadow.color);
+            }
+            Render2D.drawRoundedRect(context, x - offsetX, y - offsetY, scaledWidth, scaledHeight, borderRadius, bgColor);
+        } else {
+            if (shadow != null) {
+                Render2D.drawShadow(context, x, y, width, height, 2, 2, shadow.color);
+            }
+            Render2D.drawRoundedRect(context, x, y, width, height, borderRadius, bgColor);
+        }
+
+        if (focused && hasClass(StyleKey.FOCUS_RING)) {
+            int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
+            Render2D.drawRoundedRectBorder(context, x - 2, y - 2, width + 4, height + 4, borderRadius + 2, focusColor, 2);
+        }
+
+        renderText(context);
+    }
+
+    private void renderText(DrawContext context) {
+        if (textComponent == null) return;
+
+        int contentX = x + getPaddingLeft();
+        int contentY = y + getPaddingTop();
+        int contentWidth = width - getPaddingLeft() - getPaddingRight();
+        int contentHeight = height - getPaddingTop() - getPaddingBottom();
+
+        context.enableScissor(contentX, contentY, contentX + contentWidth, contentY + contentHeight);
+
+        try {
+            textComponent.render(context, contentX, contentY, contentWidth, contentHeight);
+        } finally {
+            context.disableScissor();
+        }
+    }
+
+    public void startTextAnimation() {
+        if (textComponent != null) {
+            textComponent.startAnimation();
+        }
+    }
+
+    public void stopTextAnimation() {
+        if (textComponent != null) {
+            textComponent.stopAnimation();
+        }
+    }
+
+    public ButtonItem withFancyText() {
+        if (textComponent != null) {
+            textComponent.rainbow().glow().pulse();
+        }
+        return this;
+    }
+
+    public ButtonItem withGlowingText() {
+        if (textComponent != null) {
+            textComponent.glow().shadow();
+        }
+        return this;
+    }
+
+    public ButtonItem withAnimatedText() {
+        if (textComponent != null) {
+            textComponent.wave().pulse();
+        }
+        return this;
+    }
+
+    public ButtonItem asPrimaryButton() {
+        return addClass(StyleKey.PRIMARY, StyleKey.HOVER_SCALE, StyleKey.SHADOW_SM);
+    }
+
+    public ButtonItem asSecondaryButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.SECONDARY, StyleKey.HOVER_BRIGHTEN);
+    }
+
+    public ButtonItem asDangerButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.DANGER, StyleKey.HOVER_SCALE);
+    }
+
+    public ButtonItem asSuccessButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.SUCCESS, StyleKey.HOVER_SCALE);
+    }
+
+    public ButtonItem asWarningButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.WARNING, StyleKey.HOVER_SCALE);
+    }
+
+    public ButtonItem asInfoButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.INFO, StyleKey.HOVER_BRIGHTEN);
+    }
+
+    public ButtonItem asGhostButton() {
+        return removeClass(StyleKey.PRIMARY)
+                .addClass(StyleKey.BG_OPACITY_0, StyleKey.HOVER_BRIGHTEN);
+    }
+
+    public ButtonItem asFancyButton() {
+        return addClass(StyleKey.HOVER_SCALE, StyleKey.SHADOW_LG);
+    }
+
+    @Override
+    public ButtonItem addClass(StyleKey... keys) {
+        super.addClass(keys);
         return this;
     }
 
     @Override
-    public void initializeComponents() {}
-
-    @Override
-    public void updateComponents() {
-        if (textComponent != null) {
-            textComponent.update();
-        }
+    public ButtonItem removeClass(StyleKey key) {
+        super.removeClass(key);
+        return this;
     }
 
     @Override
-    protected void renderContent(DrawContext context) {
-        renderButtonBackground(context);
-
-        if (textComponent != null) {
-            int contentX = getCalculatedX() + getPaddingLeft();
-            int contentY = getCalculatedY() + getPaddingTop();
-            int contentWidth = getCalculatedWidth() - getPaddingLeft() - getPaddingRight();
-            int contentHeight = getCalculatedHeight() - getPaddingTop() - getPaddingBottom();
-
-            textComponent.render(context, contentX, contentY, contentWidth, contentHeight);
-        }
+    public ButtonItem onClick(Runnable handler) {
+        super.onClick(handler);
+        return this;
     }
 
-    private void renderButtonBackground(DrawContext context) {
-        int bgColor = getBgColor();
-
-        if (isHovered()) {
-            bgColor = mixColor(bgColor, 0xFFFFFFFF, 0.1f);
-        }
-        if (isFocused()) {
-            bgColor = mixColor(bgColor, 0xFF0D6EFD, 0.2f);
-        }
-
-        if (bgColor != 0) {
-            int borderRadius = getBorderRadius();
-            renderRoundedRect(context, getCalculatedX(), getCalculatedY(),
-                    getCalculatedWidth(), getCalculatedHeight(),
-                    borderRadius, bgColor);
-        }
+    @Override
+    public ButtonItem onMouseEnter(Runnable handler) {
+        super.onMouseEnter(handler);
+        return this;
     }
 
-    private int mixColor(int color1, int color2, float ratio) {
-        if (ratio <= 0) return color1;
-        if (ratio >= 1) return color2;
+    @Override
+    public ButtonItem onMouseLeave(Runnable handler) {
+        super.onMouseLeave(handler);
+        return this;
+    }
 
-        int a1 = (color1 >> 24) & 0xFF;
-        int r1 = (color1 >> 16) & 0xFF;
-        int g1 = (color1 >> 8) & 0xFF;
-        int b1 = color1 & 0xFF;
+    @Override
+    public ButtonItem onFocusGained(Runnable handler) {
+        super.onFocusGained(handler);
+        return this;
+    }
 
-        int a2 = (color2 >> 24) & 0xFF;
-        int r2 = (color2 >> 16) & 0xFF;
-        int g2 = (color2 >> 8) & 0xFF;
-        int b2 = color2 & 0xFF;
+    @Override
+    public ButtonItem onFocusLost(Runnable handler) {
+        super.onFocusLost(handler);
+        return this;
+    }
 
-        int a = (int) (a1 + (a2 - a1) * ratio);
-        int r = (int) (r1 + (r2 - r1) * ratio);
-        int g = (int) (g1 + (g2 - g1) * ratio);
-        int b = (int) (b1 + (b2 - b1) * ratio);
+    @Override
+    public ButtonItem setVisible(boolean visible) {
+        super.setVisible(visible);
+        return this;
+    }
 
-        return (a << 24) | (r << 16) | (g << 8) | b;
+    @Override
+    public ButtonItem setEnabled(boolean enabled) {
+        super.setEnabled(enabled);
+        return this;
+    }
+
+    @Override
+    public ButtonItem setZIndex(int zIndex) {
+        super.setZIndex(zIndex);
+        return this;
+    }
+
+    @Override
+    public ButtonItem setZIndex(ZIndex zIndex) {
+        super.setZIndex(zIndex);
+        return this;
+    }
+
+
+    @Override
+    public ButtonItem setZIndex(ZIndex.Layer layer) {
+        super.setZIndex(layer);
+        return this;
+    }
+
+    @Override
+    public ButtonItem setZIndex(ZIndex.Layer layer, int priority) {
+        super.setZIndex(layer, priority);
+        return this;
+    }
+
+    @Override
+    public ButtonItem setConstraints(LayoutConstraints constraints) {
+        super.setConstraints(constraints);
+        return this;
+    }
+
+    @Override
+    public ButtonItem setTextRenderer(TextRenderer textRenderer) {
+        super.setTextRenderer(textRenderer);
+        if (this.textComponent != null) {
+            this.textComponent.setTextRenderer(textRenderer);
+        }
+        return this;
     }
 }

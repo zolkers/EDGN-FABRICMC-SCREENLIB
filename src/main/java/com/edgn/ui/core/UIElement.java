@@ -34,6 +34,7 @@ public abstract class UIElement implements IElement {
 
     private boolean stylesComputed = false;
     private CSSStyleApplier.ComputedStyles cachedStyles;
+    private boolean rendered = false;
 
     protected Runnable onClickHandler;
     protected Runnable onMouseEnterHandler;
@@ -125,14 +126,38 @@ public abstract class UIElement implements IElement {
     }
 
     public boolean canInteract(double mouseX, double mouseY) {
-        if (!visible || !enabled) return false;
-        return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
+        if (!visible || !enabled || !rendered) return false;
+
+        updateConstraints();
+        return mouseX >= calculatedX && mouseX <= calculatedX + calculatedWidth &&
+                mouseY >= calculatedY && mouseY <= calculatedY + calculatedHeight;
     }
 
     public boolean contains(double mouseX, double mouseY) {
         updateConstraints();
         return mouseX >= calculatedX && mouseX <= calculatedX + calculatedWidth &&
                 mouseY >= calculatedY && mouseY <= calculatedY + calculatedHeight;
+    }
+
+    public boolean isInInteractionZone(double mouseX, double mouseY) {
+        if (!rendered) return false;
+
+        InteractionBounds bounds = getInteractionBounds();
+        return bounds != null && bounds.contains(mouseX, mouseY);
+    }
+
+    protected void markAsRendered() {
+        this.rendered = true;
+    }
+
+    public void markAsNotRendered() {
+        this.rendered = false;
+        if (hovered) {
+            onMouseLeave();
+        }
+        if (focused) {
+            styleSystem.getEventManager().setFocus(null);
+        }
     }
 
     public int getCalculatedX() {
@@ -155,17 +180,22 @@ public abstract class UIElement implements IElement {
         return calculatedHeight;
     }
 
-    public InteractionBounds getInteractionBounds() { updateConstraints(); return interactionBounds; }
+    public InteractionBounds getInteractionBounds() {
+        updateConstraints();
+        return interactionBounds;
+    }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T addClass(StyleKey... keys) {
+    @Override
+    public <T extends IElement> T addClass(StyleKey... keys) {
         Collections.addAll(classes, keys);
         markConstraintsDirty();
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T removeClass(StyleKey key) {
+    @Override
+    public <T extends IElement> T removeClass(StyleKey key) {
         classes.remove(key);
         markConstraintsDirty();
         return (T) this;
@@ -197,8 +227,42 @@ public abstract class UIElement implements IElement {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T setZIndex(ZIndex zIndex) {
+    @Override
+    public <T extends IElement> T setZIndex(ZIndex zIndex) {
         this.zIndex = zIndex != null ? zIndex : ZIndex.CONTENT;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T setZIndex(ZIndex.Layer layer) {
+        this.zIndex = new ZIndex(layer);
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T setZIndex(ZIndex.Layer layer, int priority) {
+        this.zIndex = new ZIndex(layer, priority);
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T setZIndex(int intZIndex) {
+        if (intZIndex < ZIndex.Layer.BACKGROUND.getBaseValue()) {
+            this.zIndex = ZIndex.background(intZIndex - ZIndex.Layer.BACKGROUND.getBaseValue());
+        } else if (intZIndex < ZIndex.Layer.CONTENT.getBaseValue()) {
+            this.zIndex = ZIndex.content(intZIndex);
+        } else if (intZIndex < ZIndex.Layer.OVERLAY.getBaseValue()) {
+            this.zIndex = ZIndex.overlay(intZIndex - ZIndex.Layer.OVERLAY.getBaseValue());
+        } else if (intZIndex < ZIndex.Layer.MODAL.getBaseValue()) {
+            this.zIndex = ZIndex.modal(intZIndex - ZIndex.Layer.MODAL.getBaseValue());
+        } else if (intZIndex < ZIndex.Layer.TOOLTIP.getBaseValue()) {
+            this.zIndex = ZIndex.tooltip(intZIndex - ZIndex.Layer.TOOLTIP.getBaseValue());
+        } else {
+            this.zIndex = ZIndex.debug(intZIndex - ZIndex.Layer.DEBUG.getBaseValue());
+        }
         return (T) this;
     }
 
@@ -229,6 +293,7 @@ public abstract class UIElement implements IElement {
     public void onMouseMove(double mouseX, double mouseY) {}
 
     public void onMouseEnter() {
+        if (!canInteract(0, 0) && !rendered) return;
         hovered = true;
         if (onMouseEnterHandler != null) onMouseEnterHandler.run();
     }
@@ -239,6 +304,7 @@ public abstract class UIElement implements IElement {
     }
 
     public void onFocusGained() {
+        if (!rendered) return;
         focused = true;
         if (onFocusGainedHandler != null) onFocusGainedHandler.run();
     }
@@ -249,56 +315,81 @@ public abstract class UIElement implements IElement {
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T onClick(Runnable handler) {
+    @Override
+    public <T extends IElement> T onClick(Runnable handler) {
         this.onClickHandler = handler;
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T onMouseEnter(Runnable handler) {
+    @Override
+    public <T extends IElement> T onMouseEnter(Runnable handler) {
         this.onMouseEnterHandler = handler;
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T onMouseLeave(Runnable handler) {
+    @Override
+    public <T extends IElement> T onMouseLeave(Runnable handler) {
         this.onMouseLeaveHandler = handler;
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T onFocusGained(Runnable handler) {
+    @Override
+    public <T extends IElement> T onFocusGained(Runnable handler) {
         this.onFocusGainedHandler = handler;
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T onFocusLost(Runnable handler) {
+    @Override
+    public <T extends IElement> T onFocusLost(Runnable handler) {
         this.onFocusLostHandler = handler;
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T setConstraints(LayoutConstraints constraints) {
+    @Override
+    public <T extends IElement> T setConstraints(LayoutConstraints constraints) {
         this.constraints = constraints;
         markConstraintsDirty();
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T setVisible(boolean visible) {
+    @Override
+    public <T extends IElement> T setVisible(boolean visible) {
+        boolean wasVisible = this.visible;
         this.visible = visible;
+
+        if (wasVisible && !visible) {
+            markAsNotRendered();
+        }
+
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T setEnabled(boolean enabled) {
+    @Override
+    public <T extends IElement> T setEnabled(boolean enabled) {
         this.enabled = enabled;
+
+        if (!enabled) {
+            if (hovered) {
+                onMouseLeave();
+            }
+            if (focused) {
+                styleSystem.getEventManager().setFocus(null);
+            }
+        }
+
         return (T) this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends UIElement> T setTextRenderer(TextRenderer textRenderer) {
+    @Override
+    public <T extends IElement> T setTextRenderer(TextRenderer textRenderer) {
         this.textRenderer = textRenderer != null ? textRenderer : MinecraftClient.getInstance().textRenderer;
         return (T) this;
     }
@@ -310,6 +401,7 @@ public abstract class UIElement implements IElement {
         }
         return cachedStyles;
     }
+
     protected int getBgColor() {
         return getComputedStyles().backgroundColor;
     }
@@ -322,83 +414,53 @@ public abstract class UIElement implements IElement {
         return getComputedStyles().shadow;
     }
 
-    public int getPaddingTop() {
-        return getComputedStyles().paddingTop;
-    }
+    public int getPaddingTop() { return getComputedStyles().paddingTop; }
+    public int getPaddingRight() { return getComputedStyles().paddingRight; }
+    public int getPaddingBottom() { return getComputedStyles().paddingBottom; }
+    public int getPaddingLeft() { return getComputedStyles().paddingLeft; }
+    public int getMarginTop() { return getComputedStyles().marginTop; }
+    public int getMarginRight() { return getComputedStyles().marginRight; }
+    public int getMarginBottom() { return getComputedStyles().marginBottom; }
+    public int getMarginLeft() { return getComputedStyles().marginLeft; }
 
-    public int getPaddingRight() {
-        return getComputedStyles().paddingRight;
-    }
+    protected int getGap() { return getComputedStyles().gap; }
+    protected int getTextColor() { return getComputedStyles().textColor; }
+    protected boolean hasHoverEffect() { return getComputedStyles().hasHoverEffect; }
+    protected boolean hasFocusRing() { return getComputedStyles().hasFocusRing; }
 
-    public int getPaddingBottom() {
-        return getComputedStyles().paddingBottom;
-    }
-
-    public int getPaddingLeft() {
-        return getComputedStyles().paddingLeft;
-    }
-
-    public int getMarginTop() {
-        return getComputedStyles().marginTop;
-    }
-
-    public int getMarginRight() {
-        return getComputedStyles().marginRight;
-    }
-
-    public int getMarginBottom() {
-        return getComputedStyles().marginBottom;
-    }
-
-    public int getMarginLeft() {
-        return getComputedStyles().marginLeft;
-    }
-
-    protected int getGap() {
-        return getComputedStyles().gap;
-    }
-
-    protected int getTextColor() {
-        return getComputedStyles().textColor;
-    }
-
-    protected boolean hasHoverEffect() {
-        return getComputedStyles().hasHoverEffect;
-    }
-
-    protected boolean hasFocusRing() {
-        return getComputedStyles().hasFocusRing;
-    }
-
-    public int getFlexGrow() {
-        return getComputedStyles().flexGrow;
-    }
-
-    protected int getFlexShrink() {
-        return getComputedStyles().flexShrink;
-    }
+    public int getFlexGrow() { return getComputedStyles().flexGrow; }
+    protected int getFlexShrink() { return getComputedStyles().flexShrink; }
 
     public boolean hasClass(StyleKey key) { return classes.contains(key); }
     public boolean isVisible() { return visible; }
     public boolean isEnabled() { return enabled; }
     public boolean isFocused() { return focused; }
     public boolean isHovered() { return hovered; }
+    public boolean isRendered() { return rendered; }
     public UIStyleSystem getStyleSystem() { return styleSystem; }
     public UIElement getParent() { return parent; }
     public TextRenderer getTextRenderer() { return textRenderer; }
     public LayoutConstraints getConstraints() { return constraints; }
 
-    public ZIndex getZIndex() {
-        return zIndex;
-    }
+    public ZIndex getZIndex() { return zIndex; }
+    public int getZIndexValue() { return zIndex.getValue(); }
+
+    @Deprecated
+    public int getZIndexInt() { return zIndex.getValue(); }
 
     public int getX() { return x; }
     public int getY() { return y; }
     public int getWidth() { return width; }
     public int getHeight() { return height; }
 
-    public int getZIndexValue() {
-        return zIndex.getValue();
+    public final void renderElement(DrawContext context) {
+        if (!visible) {
+            markAsNotRendered();
+            return;
+        }
+
+        markAsRendered();
+        render(context);
     }
 
     public abstract void render(DrawContext context);

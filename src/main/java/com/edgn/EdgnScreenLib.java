@@ -38,7 +38,7 @@ public class EdgnScreenLib implements ModInitializer {
 
 			ClientTickEvents.END_CLIENT_TICK.register(client -> {
 				if (openExampleScreenKey.wasPressed()) {
-					client.setScreen(new ExampleScreen());
+					client.setScreen(new ExampleScreen(null));
 				}
 			});
 

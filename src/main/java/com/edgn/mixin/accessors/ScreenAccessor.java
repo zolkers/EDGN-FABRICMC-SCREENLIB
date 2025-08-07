@@ -20,7 +20,4 @@ public interface ScreenAccessor {
 
     @Accessor("children")
     List<Element> getChildren();
-
-    @Accessor
-    TextRenderer getTextRenderer();
 }

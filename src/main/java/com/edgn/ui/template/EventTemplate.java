@@ -6,10 +6,10 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
 @SuppressWarnings("unused")
-public abstract class EventScreen extends Screen {
+public abstract class EventTemplate extends Screen {
     protected UIStyleSystem uiSystem;
 
-    protected EventScreen(Text title) {
+    protected EventTemplate(Text title) {
         super(title);
         this.uiSystem = new UIStyleSystem();
     }
@@ -112,6 +112,5 @@ public abstract class EventScreen extends Screen {
     public final void tick() {
         super.tick();
         uiSystem.getEventManager().onTick();
-        this.onTick();
     }
 }

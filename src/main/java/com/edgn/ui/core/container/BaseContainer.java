@@ -1,53 +1,53 @@
 package com.edgn.ui.core.container;
 
+import com.edgn.ui.core.IElement;
 import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.layout.ClipBounds;
-import com.edgn.ui.layout.LayoutBox;
+import com.edgn.ui.css.rules.Shadow;
 import com.edgn.ui.layout.LayoutEngine;
+import com.edgn.ui.utils.Render2D;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
-public class BaseContainer extends UIElement implements IContainer {
-    protected final List<UIElement> children = new CopyOnWriteArrayList<>();
-    protected boolean clipChildren = true;
-    private boolean updatingConstraints = false;
-    protected ClipBounds clipBounds;
+@SuppressWarnings({"unused", "unchecked"})
+public abstract class BaseContainer extends UIElement implements IContainer {
+    protected final List<UIElement> children = new ArrayList<>();
 
     public BaseContainer(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
-        updateClipBounds();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends IContainer> T addChild(UIElement child) {
-        if (child != null && !children.contains(child)) {
-            children.add(child);
-            child.setParent(this);
+    public <T extends IContainer> T addChild(UIElement element) {
+        if (element != null && !children.contains(element)) {
+            element.setParent(this);
+            children.add(element);
             markConstraintsDirty();
         }
         return (T) this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public <T extends IContainer> T removeChild(UIElement child) {
-        if (children.remove(child)) {
-            child.setParent(null);
+    public <T extends IContainer> T removeChild(UIElement element) {
+        if (children.remove(element)) {
+            if (element != null) {
+                element.setParent(null);
+                element.markAsNotRendered();
+            }
             markConstraintsDirty();
         }
         return (T) this;
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T extends IContainer> T clearChildren() {
         for (UIElement child : children) {
-            child.setParent(null);
+            if (child != null) {
+                child.setParent(null);
+                child.markAsNotRendered();
+            }
         }
         children.clear();
         markConstraintsDirty();
@@ -55,90 +55,8 @@ public class BaseContainer extends UIElement implements IContainer {
     }
 
     @Override
-    public List<UIElement> getChildren() {
-        return new ArrayList<>(children);
-    }
-
-    @Override
-    public boolean hasChildren() {
-        return !children.isEmpty();
-    }
-
-    @Override
-    public void updateChildrenLayout() {
-        for (UIElement child : children) {
-            LayoutEngine.applyElementStyles(child);
-            if (child instanceof IContainer container) {
-                container.updateChildrenLayout();
-            }
-        }
-    }
-
-    @Override
-    public UIElement findElementAt(double mouseX, double mouseY) {
-        if (!clipBounds.contains(mouseX, mouseY)) {
-            return null;
-        }
-
-        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
-
-        for (UIElement child : sortedChildren) {
-            if (child instanceof IContainer container) {
-                UIElement found = container.findElementAt(mouseX, mouseY);
-                if (found != null) {
-                    return found;
-                }
-            } else if (child.canInteract(mouseX, mouseY)) {
-                return child;
-            }
-        }
-
-        return this.canInteract(mouseX, mouseY) ? this : null;
-    }
-
-    @Override
-    public ClipBounds getClipBounds() {
-        updateClipBounds();
-        return clipBounds;
-    }
-
-    protected void updateClipBounds() {
-        LayoutBox contentBox = LayoutEngine.calculateContentBox(this);
-        int borderRadius = clipChildren ? getBorderRadius() : 0;
-
-        ClipBounds baseClip = ClipBounds.fromLayoutBox(contentBox, borderRadius);
-
-        if (parent instanceof IContainer parentContainer && clipChildren) {
-            ClipBounds parentClip = parentContainer.getClipBounds();
-            clipBounds = baseClip.intersect(parentClip);
-        } else {
-            clipBounds = baseClip;
-        }
-    }
-
-    @Override
-    public boolean canInteract(double mouseX, double mouseY) {
-        if (!visible || !enabled) return false;
-
-        updateClipBounds();
-        return clipBounds.contains(mouseX, mouseY);
-    }
-
-    @Override
-    public void updateConstraints() {
-        if (updatingConstraints) return;
-
-        updatingConstraints = true;
-        try {
-            super.updateConstraints();
-            updateClipBounds();
-        } finally {
-            updatingConstraints = false;
-        }
-    }
-
-    @Override
     public void markConstraintsDirty() {
+        if (constraintsDirty) return;
         super.markConstraintsDirty();
         for (UIElement child : children) {
             child.markConstraintsDirty();
@@ -146,10 +64,28 @@ public class BaseContainer extends UIElement implements IContainer {
     }
 
     @Override
+    public void updateConstraints() {
+        if (!constraintsDirty) return;
+
+        calculateEffectiveBounds();
+        updateInteractionBounds();
+        constraintsDirty = false;
+
+        for (UIElement child : children) {
+            child.updateConstraints();
+        }
+    }
+
+    @Override
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
-        UIElement targetElement = findElementAt(mouseX, mouseY);
-        if (targetElement != null && targetElement != this) {
-            return targetElement.onMouseClick(mouseX, mouseY, button);
+        if (!canInteract(mouseX, mouseY)) return false;
+
+        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
+
+        for (UIElement child : sortedChildren) {
+            if (child.onMouseClick(mouseX, mouseY, button)) {
+                return true;
+            }
         }
 
         return super.onMouseClick(mouseX, mouseY, button);
@@ -157,7 +93,9 @@ public class BaseContainer extends UIElement implements IContainer {
 
     @Override
     public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        for (UIElement child : children) {
+        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
+
+        for (UIElement child : sortedChildren) {
             if (child.onMouseRelease(mouseX, mouseY, button)) {
                 return true;
             }
@@ -167,136 +105,177 @@ public class BaseContainer extends UIElement implements IContainer {
 
     @Override
     public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) {
-        UIElement targetElement = findElementAt(mouseX, mouseY);
-        if (targetElement != null && targetElement != this) {
-            return targetElement.onMouseScroll(mouseX, mouseY, scrollDelta);
+        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
+
+        for (UIElement child : sortedChildren) {
+            if (child.onMouseScroll(mouseX, mouseY, scrollDelta)) {
+                return true;
+            }
         }
         return super.onMouseScroll(mouseX, mouseY, scrollDelta);
+    }
+
+    @Override
+    public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
+        List<UIElement> sortedChildren = LayoutEngine.sortByRenderOrder(children);
+
+        for (int i = sortedChildren.size() - 1; i >= 0; i--) {
+            UIElement child = sortedChildren.get(i);
+            if (child.isVisible() && child.isEnabled() && child.isRendered() &&
+                    child.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) {
+                return true;
+            }
+        }
+        return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
     public void onMouseMove(double mouseX, double mouseY) {
         super.onMouseMove(mouseX, mouseY);
         for (UIElement child : children) {
-            child.onMouseMove(mouseX, mouseY);
+            if (child.isVisible() && child.isRendered()) {
+                child.onMouseMove(mouseX, mouseY);
+            }
         }
+    }
+
+    public List<UIElement> getChildren() {
+        return new ArrayList<>(children);
+    }
+
+    public List<UIElement> getVisibleChildren() {
+        return LayoutEngine.sortByRenderOrder(children);
+    }
+
+    public UIElement getTopChildAt(double mouseX, double mouseY) {
+        return LayoutEngine.getTopElementAt(children, mouseX, mouseY);
+    }
+
+    public boolean canChildInteractAt(UIElement child, double mouseX, double mouseY) {
+        return LayoutEngine.canInteractAt(child, children, mouseX, mouseY);
+    }
+
+    @Override
+    public <T extends IElement> T setVisible(boolean visible) {
+        boolean wasVisible = this.visible;
+        super.setVisible(visible);
+
+        if (wasVisible && !visible) {
+            for (UIElement child : children) {
+                child.markAsNotRendered();
+            }
+        }
+
+        return (T) this;
     }
 
     @Override
     public void render(DrawContext context) {
-        if (!visible) return;
+        if (!visible) {
+            markAsNotRendered();
+            for (UIElement child : children) {
+                child.markAsNotRendered();
+            }
+            return;
+        }
 
-        updateClipBounds();
-        if (!clipBounds.isValid()) return;
-
+        markAsRendered();
+        updateConstraints();
         renderBackground(context);
 
-        if (clipChildren) {
-            clipBounds.applyScissor(context);
+        LayoutEngine.LayoutBox content = getContentArea();
+
+        InteractionBounds bounds = getInteractionBounds();
+        if (bounds.isValid()) {
+            context.enableScissor(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
         }
 
-        List<UIElement> sortedChildren = LayoutEngine.sortByZIndex(children);
-        for (UIElement child : sortedChildren) {
-            child.render(context);
-        }
+        try {
+            layoutChildren();
 
-        if (clipChildren) {
-            context.disableScissor();
-        }
+            List<UIElement> sortedChildren = LayoutEngine.sortByRenderOrder(children);
 
-        renderEffects(context);
+            for (UIElement child : sortedChildren) {
+                if (child != null && child.isVisible()) {
+                    LayoutEngine.applyElementStyles(child);
+                    child.renderElement(context);
+                }
+            }
+        } finally {
+            if (bounds.isValid()) {
+                context.disableScissor();
+            }
+        }
     }
 
     protected void renderBackground(DrawContext context) {
         int bgColor = getBgColor();
         if (bgColor != 0) {
             int borderRadius = getBorderRadius();
-            if (borderRadius > 0) {
-                renderRoundedRect(context, getCalculatedX(), getCalculatedY(),
-                        getCalculatedWidth(), getCalculatedHeight(),
-                        borderRadius, bgColor);
-            } else {
-                context.fill(getCalculatedX(), getCalculatedY(),
-                        getCalculatedX() + getCalculatedWidth(),
-                        getCalculatedY() + getCalculatedHeight(), bgColor);
+            Shadow shadow = getShadow();
+
+            if (shadow != null) {
+                Render2D.drawShadow(context, getCalculatedX(), getCalculatedY(),
+                        getCalculatedWidth(), getCalculatedHeight(), 2, 2, shadow.color);
             }
+
+            Render2D.drawRoundedRect(context, getCalculatedX(), getCalculatedY(),
+                    getCalculatedWidth(), getCalculatedHeight(), borderRadius, bgColor);
         }
     }
 
-    protected void renderEffects(DrawContext context) {
-        if (isFocused() && hasFocusRing()) {
-            renderFocusRing(context);
+    protected LayoutEngine.LayoutBox getContentArea() {
+        return LayoutEngine.calculateContentBox(this);
+    }
+
+    protected abstract void layoutChildren();
+
+    protected List<UIElement> getSortedChildren() {
+        return LayoutEngine.sortByZIndex(children);
+    }
+
+
+    public BaseContainer bringChildToFront(UIElement child) {
+        if (children.contains(child)) {
+            int maxZIndex = children.stream()
+                    .mapToInt(UIElement::getZIndexValue)
+                    .max()
+                    .orElse(0);
+
+            child.setZIndex(maxZIndex + 1);
         }
+        return this;
+    }
 
-        if (isHovered() && hasHoverEffect()) {
-            renderHoverEffect(context);
+    public BaseContainer sendChildToBack(UIElement child) {
+        if (children.contains(child)) {
+            int minZIndex = children.stream()
+                    .mapToInt(UIElement::getZIndexValue)
+                    .min()
+                    .orElse(0);
+
+            child.setZIndex(minZIndex - 1);
         }
+        return this;
     }
 
-    protected void renderRoundedRect(DrawContext context, int x, int y, int width, int height,
-                                     int radius, int color) {
-        if (radius <= 0) {
-            context.fill(x, y, x + width, y + height, color);
-            return;
-        }
+    public ContainerRenderStats getRenderStats() {
+        long totalChildren = children.size();
+        long visibleChildren = children.stream().filter(UIElement::isVisible).count();
+        long renderedChildren = children.stream().filter(UIElement::isRendered).count();
+        long interactiveChildren = children.stream()
+                .filter(UIElement::isVisible)
+                .filter(UIElement::isEnabled)
+                .filter(UIElement::isRendered)
+                .count();
 
-        int clampedRadius = Math.min(radius, Math.min(width / 2, height / 2));
-
-        context.fill(x, y + clampedRadius, x + width, y + height - clampedRadius, color);
-        context.fill(x + clampedRadius, y, x + width - clampedRadius, y + clampedRadius, color);
-        context.fill(x + clampedRadius, y + height - clampedRadius, x + width - clampedRadius, y + height, color);
-
-        renderRoundedCorners(context, x, y, width, height, clampedRadius, color);
+        return new ContainerRenderStats(totalChildren, visibleChildren, renderedChildren, interactiveChildren);
     }
 
-    protected void renderRoundedCorners(DrawContext context, int x, int y, int width, int height,
-                                        int radius, int color) {
-        for (int i = 0; i < radius; i++) {
-            for (int j = 0; j < radius; j++) {
-                double distance = Math.sqrt(i * i + j * j);
-                if (distance <= radius) {
-                    context.fill(x + radius - i - 1, y + radius - j - 1,
-                            x + radius - i, y + radius - j, color);
-                    int x2 = x + width - radius + i + 1;
-                    context.fill(x + width - radius + i, y + radius - j - 1,
-                            x2, y + radius - j, color);
-                    int y2 = y + height - radius + j + 1;
-                    context.fill(x + radius - i - 1, y + height - radius + j,
-                            x + radius - i, y2, color);
-                    context.fill(x + width - radius + i, y + height - radius + j,
-                            x2, y2, color);
-                }
-            }
-        }
-    }
-
-    protected void renderFocusRing(DrawContext context) {
-        int x = getCalculatedX() - 2;
-        int y = getCalculatedY() - 2;
-        int width = getCalculatedWidth() + 4;
-        int height = getCalculatedHeight() + 4;
-        int radius = getBorderRadius() + 2;
-
-        renderRoundedRect(context, x, y, width, height, radius, 0x80007ACC);
-    }
-
-    protected void renderHoverEffect(DrawContext context) {
-        int overlayColor = 0x20FFFFFF;
-        int radius = getBorderRadius();
-
-        renderRoundedRect(context, getCalculatedX(), getCalculatedY(),
-                getCalculatedWidth(), getCalculatedHeight(),
-                radius, overlayColor);
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T extends BaseContainer> T setClipChildren(boolean clipChildren) {
-        this.clipChildren = clipChildren;
-        updateClipBounds();
-        return (T) this;
-    }
-
-    public boolean isClipChildren() {
-        return clipChildren;
-    }
+    public record ContainerRenderStats(
+            long totalChildren,
+            long visibleChildren,
+            long renderedChildren,
+            long interactiveChildren
+    ) {}
 }

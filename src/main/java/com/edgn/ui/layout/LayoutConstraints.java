@@ -1,5 +1,6 @@
 package com.edgn.ui.layout;
 
+@SuppressWarnings("unused")
 public class LayoutConstraints {
     private Integer minWidth, maxWidth, minHeight, maxHeight;
     private Float widthPercent, heightPercent;

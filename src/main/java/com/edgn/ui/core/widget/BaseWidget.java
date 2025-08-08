@@ -5,7 +5,7 @@ import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.rules.Shadow;
 import com.edgn.ui.layout.LayoutEngine;
-import com.edgn.ui.utils.Render2D;
+import com.edgn.ui.utils.DrawContextUtils;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.ArrayList;
@@ -109,10 +109,10 @@ public abstract class BaseWidget extends UIElement implements IWidget {
             int renderHeight = getCalculatedHeight();
 
             if (shadow != null) {
-                Render2D.drawShadow(context, renderX, renderY, renderWidth, renderHeight, 2, 2, shadow.color);
+                DrawContextUtils.drawShadow(context, renderX, renderY, renderWidth, renderHeight, 2, 2, shadow.color);
             }
 
-            Render2D.drawRoundedRect(context, renderX, renderY, renderWidth, renderHeight, borderRadius, bgColor);
+            DrawContextUtils.drawRoundedRect(context, renderX, renderY, renderWidth, renderHeight, borderRadius, bgColor);
         }
     }
 
@@ -151,7 +151,7 @@ public abstract class BaseWidget extends UIElement implements IWidget {
             int renderWidth = getCalculatedWidth();
             int renderHeight = getCalculatedHeight();
 
-            Render2D.drawRoundedRectBorder(context, renderX - 2, renderY - 2,
+            DrawContextUtils.drawRoundedRectBorder(context, renderX - 2, renderY - 2,
                     renderWidth + 4, renderHeight + 4, borderRadius + 2, focusColor, 2);
         }
     }

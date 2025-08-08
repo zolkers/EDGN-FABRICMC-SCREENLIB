@@ -7,7 +7,7 @@ import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.rules.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
-import com.edgn.ui.utils.Render2D;
+import com.edgn.ui.utils.DrawContextUtils;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
@@ -138,19 +138,19 @@ public class ButtonItem extends BaseItem {
             int oy = (sh - ch) / 2;
 
             if (shadow != null) {
-                Render2D.drawShadow(context, cx - ox, cy - oy, sw, sh, 3, 3, shadow.color);
+                DrawContextUtils.drawShadow(context, cx - ox, cy - oy, sw, sh, 3, 3, shadow.color);
             }
-            Render2D.drawRoundedRect(context, cx - ox, cy - oy, sw, sh, borderRadius, bgColor);
+            DrawContextUtils.drawRoundedRect(context, cx - ox, cy - oy, sw, sh, borderRadius, bgColor);
         } else {
             if (shadow != null) {
-                Render2D.drawShadow(context, cx, cy, cw, ch, 2, 2, shadow.color);
+                DrawContextUtils.drawShadow(context, cx, cy, cw, ch, 2, 2, shadow.color);
             }
-            Render2D.drawRoundedRect(context, cx, cy, cw, ch, borderRadius, bgColor);
+            DrawContextUtils.drawRoundedRect(context, cx, cy, cw, ch, borderRadius, bgColor);
         }
 
         if (focused && hasClass(StyleKey.FOCUS_RING)) {
             int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
-            Render2D.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, borderRadius + 2, focusColor, 2);
+            DrawContextUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, borderRadius + 2, focusColor, 2);
         }
 
         renderText(context, cx, cy, cw, ch);

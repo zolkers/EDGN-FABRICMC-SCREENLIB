@@ -1,5 +1,6 @@
 package com.edgn.ui.core.components;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.OrderedText;
@@ -76,6 +77,11 @@ public class TextComponent {
     public TextComponent(String text, TextRenderer textRenderer) {
         this.text = text;
         this.textRenderer = textRenderer;
+    }
+
+    public TextComponent(String text) {
+        this.text = text;
+        this.textRenderer = MinecraftClient.getInstance().textRenderer;
     }
 
     public void render(DrawContext context, int x, int y, int maxWidth, int maxHeight) {

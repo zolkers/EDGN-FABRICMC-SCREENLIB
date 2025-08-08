@@ -130,6 +130,11 @@ public abstract class BaseTemplate extends EventTemplate {
     }
 
     @Override
+    public final void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
+        super.renderBackground(context, mouseX, mouseY, delta);
+    }
+
+    @Override
     public void close() {
         MinecraftClient.getInstance().setScreen(prevScreen);
     }

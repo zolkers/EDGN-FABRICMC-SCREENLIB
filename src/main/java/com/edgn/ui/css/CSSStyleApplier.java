@@ -1,6 +1,5 @@
 package com.edgn.ui.css;
 
-
 import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.rules.Shadow;
 
@@ -28,6 +27,7 @@ public class CSSStyleApplier {
 
         styles.flexGrow = computeFlexGrow(element, styleSystem);
         styles.flexShrink = computeFlexShrink(element, styleSystem);
+        styles.flexBasis = computeFlexBasis(element, styleSystem); // NEW
 
         styles.gap = computeGap(element, styleSystem);
 
@@ -126,7 +126,6 @@ public class CSSStyleApplier {
                 StyleKey.ROUNDED_NONE, StyleKey.ROUNDED_SM, StyleKey.ROUNDED_MD,
                 StyleKey.ROUNDED_LG, StyleKey.ROUNDED_XL, StyleKey.ROUNDED_XXL, StyleKey.ROUNDED_FULL
         };
-
         return computeValueFromKeys(element, styleSystem, radiusKeys);
     }
 
@@ -135,7 +134,6 @@ public class CSSStyleApplier {
                 StyleKey.SHADOW_NONE, StyleKey.SHADOW_SM, StyleKey.SHADOW_MD,
                 StyleKey.SHADOW_LG, StyleKey.SHADOW_XL, StyleKey.SHADOW_GLOW
         };
-
         for (StyleKey key : shadowKeys) {
             if (element.hasClass(key)) {
                 return (Shadow) styleSystem.getStyleValues().get(key);
@@ -152,7 +150,16 @@ public class CSSStyleApplier {
     private static int computeFlexShrink(UIElement element, UIStyleSystem styleSystem) {
         StyleKey[] keys = {StyleKey.FLEX_SHRINK_0, StyleKey.FLEX_SHRINK_1};
         int computed = computeValueFromKeys(element, styleSystem, keys);
-        return computed != 0 ? computed : 1; // Default shrink = 1
+        return computed != 0 ? computed : 1;
+    }
+
+    private static int computeFlexBasis(UIElement element, UIStyleSystem styleSystem) {
+        StyleKey[] keys = {
+                StyleKey.FLEX_BASIS_0, StyleKey.FLEX_BASIS_10, StyleKey.FLEX_BASIS_15, StyleKey.FLEX_BASIS_20, StyleKey.FLEX_BASIS_25,
+                StyleKey.FLEX_BASIS_30, StyleKey.FLEX_BASIS_33, StyleKey.FLEX_BASIS_40, StyleKey.FLEX_BASIS_50,
+                StyleKey.FLEX_BASIS_60, StyleKey.FLEX_BASIS_66, StyleKey.FLEX_BASIS_75, StyleKey.FLEX_BASIS_100,
+        };
+        return computeValueFromKeys(element, styleSystem, keys);
     }
 
     private static int computePaddingTop(UIElement element, UIStyleSystem styleSystem) {
@@ -248,5 +255,6 @@ public class CSSStyleApplier {
         public boolean hasFocusRing = false;
         public int flexGrow = 0;
         public int flexShrink = 1;
+        public int flexBasis = 0;
     }
 }

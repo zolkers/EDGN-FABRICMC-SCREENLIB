@@ -5,6 +5,15 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
+/**
+ * The core of the framework and main entrypoint, if you want to use this framework,
+ * you are going to be forced to use this one template.
+ * The role of EventTemplate.java is to hook the events, those events are designed
+ * to perfectly manage the {@link com.edgn.ui.core.UIElement} behaviors
+ * Each event from Screen is final as we don't want the user to do a mistake and break
+ * the whole mod by forgetting to call super.method()
+ * @author EDGN
+ */
 @SuppressWarnings("unused")
 public abstract class EventTemplate extends Screen {
     protected UIStyleSystem uiSystem;
@@ -14,8 +23,9 @@ public abstract class EventTemplate extends Screen {
         this.uiSystem = new UIStyleSystem();
     }
 
+    //these are the methods to use if you ever want to do something with the events
     protected void onRemove() {}
-    protected void onInit(){}
+    protected void onInit() {}
     protected void onResize(MinecraftClient client, int width, int height){}
     protected void onMouseClicked(double mouseX, double mouseY, int button) {}
     protected void onMouseReleased(double mouseX, double mouseY, int button) {}
@@ -26,6 +36,7 @@ public abstract class EventTemplate extends Screen {
     protected void onCharTyped(char chr, int modifiers) {}
     protected void onTick(){}
 
+    //from this point, there's nothing to really see, those mainly are the hooks
     @Override
     protected final void init() {
         super.init();
@@ -112,5 +123,6 @@ public abstract class EventTemplate extends Screen {
     public final void tick() {
         super.tick();
         uiSystem.getEventManager().onTick();
+        this.onTick();
     }
 }

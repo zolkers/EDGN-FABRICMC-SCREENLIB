@@ -49,7 +49,7 @@ public class ExampleScreen extends BaseTemplate {
 
         content.addChild(button(ui, "Nouveau monde", StyleKey.PRIMARY, true)
                 .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1, StyleKey.P_2)
+                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
         content.addChild(button(ui, "Charger", StyleKey.SECONDARY, false)

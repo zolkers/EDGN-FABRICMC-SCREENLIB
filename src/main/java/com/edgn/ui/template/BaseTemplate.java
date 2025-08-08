@@ -12,6 +12,12 @@ import net.minecraft.text.Text;
 
 import java.util.Calendar;
 
+/**
+ * BaseTemplate is the main template which is recommended to use.
+ * If you ever want to create your own template, You can, always make sure to
+ * either extend {@link EventTemplate} or {@link BaseTemplate} as it is the core of the framework
+ * @author EDGN
+ */
 public abstract class BaseTemplate extends EventTemplate {
     protected int headerHeight;
     protected int footerHeight;
@@ -30,15 +36,48 @@ public abstract class BaseTemplate extends EventTemplate {
         else this.settings = templateSettings();
     }
 
+    /**
+     * The settings of your screen
+     * @return the settings
+     */
     protected abstract TemplateSettings templateSettings();
+
+    /**
+     * The header of your screen, a BaseContainer, FlexContainer is the expected container
+     * to be used, but since we have to consider custom containers, a BaseContainer will do
+     * @return a container
+     */
     protected abstract BaseContainer createHeader();
+
+    /**
+     * The content of your screen, a BaseContainer, FlexContainer is the expected container
+     * to be used, but since we have to consider custom containers, a BaseContainer will do
+     * @return a container
+     */
     protected abstract BaseContainer createContent();
+
+    /**
+     * The footer of your screen, a BaseContainer, FlexContainer is the expected container
+     * to be used, but since we have to consider custom containers, a BaseContainer will do
+     * @return a container
+     */
     protected abstract BaseContainer createFooter();
 
+    /**
+     * Base initialisation of the screen
+     */
     @Override
-    protected void onInit() {
+    protected final void onInit() {
         this.updateScreenValues();
         this.buildUI();
+        this.initialise();
+    }
+
+    /**
+     * The initialisation entry point for the user
+     */
+    protected void initialise() {
+
     }
 
     protected void buildUI() {

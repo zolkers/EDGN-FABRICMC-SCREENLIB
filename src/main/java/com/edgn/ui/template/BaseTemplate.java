@@ -12,6 +12,8 @@ import net.minecraft.text.Text;
 
 import java.util.Calendar;
 
+//TODO: make a tree hierarchy for the screens maybe
+
 /**
  * BaseTemplate is the main template which is recommended to use.
  * If you ever want to create your own template, You can, always make sure to
@@ -64,8 +66,17 @@ public abstract class BaseTemplate extends EventTemplate {
     protected abstract BaseContainer createFooter();
 
     /**
-     * Base initialisation of the screen
+     * The screen initialisation entry point for the user
      */
+    protected void initialise() {}
+
+    /**
+     * The tick entry point for the user
+     */
+    protected void tickEvent() {}
+
+    protected void resizeEvent() {}
+
     @Override
     protected final void onInit() {
         this.updateScreenValues();
@@ -73,11 +84,22 @@ public abstract class BaseTemplate extends EventTemplate {
         this.initialise();
     }
 
-    /**
-     * The initialisation entry point for the user
-     */
-    protected void initialise() {
+    @Override
+    public void close() {
+        MinecraftClient.getInstance().setScreen(prevScreen);
+    }
 
+    @Override
+    public final void onTick() {
+        this.updateScreenValues();
+        this.tickEvent();
+    }
+
+    @Override
+    public final void onResize(MinecraftClient client, int width, int height) {
+        this.updateScreenValues();
+        this.updateLayout();
+        this.resizeEvent();
     }
 
     protected void buildUI() {
@@ -172,23 +194,6 @@ public abstract class BaseTemplate extends EventTemplate {
     @Override
     public final void renderBackground(DrawContext context, int mouseX, int mouseY, float delta) {
         super.renderBackground(context, mouseX, mouseY, delta);
-    }
-
-    @Override
-    public void close() {
-        MinecraftClient.getInstance().setScreen(prevScreen);
-    }
-
-    @Override
-    public void onTick() {
-        super.tick();
-        this.updateScreenValues();
-    }
-
-    @Override
-    public void onResize(MinecraftClient client, int width, int height) {
-        this.updateScreenValues();
-        this.updateLayout();
     }
 
     private void updateScreenValues() {

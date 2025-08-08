@@ -25,7 +25,9 @@ public abstract class EventTemplate extends Screen {
 
     //these are the methods to use if you ever want to do something with the events
     protected void onRemove() {}
+    //final in BaseTemplate look for initialisation() entrypoint
     protected void onInit() {}
+    //final in BaseTemplate look for resizeEvent() entrypoint
     protected void onResize(MinecraftClient client, int width, int height){}
     protected void onMouseClicked(double mouseX, double mouseY, int button) {}
     protected void onMouseReleased(double mouseX, double mouseY, int button) {}
@@ -34,9 +36,10 @@ public abstract class EventTemplate extends Screen {
     protected void onMouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY){}
     protected void onKeyPressed(int keyCode, int scanCode, int modifiers) {}
     protected void onCharTyped(char chr, int modifiers) {}
+    //final in BaseTemplate look for tickEvent() entrypoint
     protected void onTick(){}
 
-    //from this point, there's nothing to really see, those mainly are the hooks
+    //from this point, there's nothing to really see, those are the hooks
     @Override
     protected final void init() {
         super.init();

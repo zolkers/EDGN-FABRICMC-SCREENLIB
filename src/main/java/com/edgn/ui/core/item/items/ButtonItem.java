@@ -164,7 +164,9 @@ public class ButtonItem extends BaseItem {
         int contentW = Math.max(0, cw - getPaddingLeft() - getPaddingRight());
         int contentH = Math.max(0, ch - getPaddingTop() - getPaddingBottom());
 
-        textComponent.color(getComputedStyles().textColor);
+        if (!textComponent.hasCustomStyling()) {
+            textComponent.color(getComputedStyles().textColor);
+        }
 
         context.enableScissor(contentX, contentY, contentX + contentW, contentY + contentH);
         try {

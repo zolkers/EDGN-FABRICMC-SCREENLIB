@@ -575,6 +575,14 @@ public class TextComponent {
         void apply(TextComponent textComponent, DrawContext context, int x, int y);
     }
 
+    public boolean hasCustomStyling() {
+        return effectType != EffectType.SOLID
+                || hasShadow
+                || isBold || isItalic || isUnderlined || isStrikethrough
+                || !customEffects.isEmpty()
+                || !activeAnimations.isEmpty();
+    }
+
     public TextComponent cloneWithNewText(String newText) {
         TextComponent c = new TextComponent(newText, this.textRenderer);
 

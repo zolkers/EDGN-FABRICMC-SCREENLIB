@@ -66,7 +66,7 @@ public class FlexContainer extends BaseContainer {
             if (!child.isVisible()) continue;
             child.updateConstraints();
 
-            int basis = resolveFlexBasis(child, maxMain, row);
+            int basis = resolveFlexBasis(child, maxMain, gap, row);
             int mMainStart = row ? child.getMarginLeft() : child.getMarginTop();
             int mMainEnd   = row ? child.getMarginRight() : child.getMarginBottom();
             int mCrossStart= row ? child.getMarginTop() : child.getMarginLeft();
@@ -111,7 +111,7 @@ public class FlexContainer extends BaseContainer {
 
             for (int i = 0; i < line.size(); i++) {
                 UIElement child = line.get(i);
-                int basis = resolveFlexBasis(child, maxMain, row);
+                int basis = resolveFlexBasis(child, maxMain, gap, row);
 
                 int mMainStart = row ? child.getMarginLeft() : child.getMarginTop();
                 int mMainEnd   = row ? child.getMarginRight() : child.getMarginBottom();
@@ -123,7 +123,7 @@ public class FlexContainer extends BaseContainer {
                 mCrossEndArr[i] = mCrossEnd;
 
                 int itemMain = basis + mMainStart + mMainEnd;
-                basisPx[i] = itemMain - mMainStart - mMainEnd;
+                basisPx[i] = basis;
                 baseWithMargins[i] = itemMain;
 
                 usedMain += (i == 0 ? itemMain : gap + itemMain);
@@ -245,10 +245,13 @@ public class FlexContainer extends BaseContainer {
         }
     }
 
-    private int resolveFlexBasis(UIElement child, int maxMain, boolean row) {
+    private int resolveFlexBasis(UIElement child, int maxMain, int gap, boolean row) {
         int basis = child.getComputedStyles().flexBasis;
         if (basis > 0 && basis <= 100) {
-            return Math.max(0, (int) Math.floor((basis / 100.0) * maxMain));
+            int count = Math.max(1, Math.round(100f / basis));
+            int totalGaps = gap * (count - 1);
+            int usable = Math.max(0, maxMain - totalGaps);
+            return Math.max(0, (int) Math.floor((basis / 100.0) * usable));
         }
         if (basis <= 0) {
             return row ? Math.max(0, child.getWidth()) : Math.max(0, child.getHeight());

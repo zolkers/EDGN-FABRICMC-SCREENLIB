@@ -26,7 +26,8 @@ public abstract class BaseTemplate extends EventTemplate {
     protected BaseTemplate(Text title, Screen prevScreen) {
         super(title);
         this.prevScreen = prevScreen;
-        this.settings = templateSettings();
+        if(templateSettings() == null) this.settings = new TemplateSettings().setToDefault();
+        else this.settings = templateSettings();
     }
 
     protected abstract TemplateSettings templateSettings();

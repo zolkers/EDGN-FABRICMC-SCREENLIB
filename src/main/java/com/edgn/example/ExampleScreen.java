@@ -19,7 +19,7 @@ public class ExampleScreen extends BaseTemplate {
 
     @Override
     protected TemplateSettings templateSettings() {
-        return new TemplateSettings().setHeader(false).setFooter(false);
+        return null;
     }
 
     @Override
@@ -112,7 +112,7 @@ public class ExampleScreen extends BaseTemplate {
 
     private ButtonItem button(UIStyleSystem ui, String label, StyleKey tone, boolean scaleOnHover) {
         ButtonItem b = new ButtonItem(ui, 0, 0, 220, 48)
-                .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR))
+                .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR).wave())
                 .addClass(
                         tone,
                         StyleKey.TEXT_WHITE,

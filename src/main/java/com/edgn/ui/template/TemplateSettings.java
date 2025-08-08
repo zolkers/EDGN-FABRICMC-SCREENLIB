@@ -1,10 +1,22 @@
 package com.edgn.ui.template;
 
+/**
+ * This class will set the rules for {@link BaseTemplate}
+ * Just like any other class in the framework, the class will work with a chaining logic
+ * If the user choses to set the TemplateSettings to null we will simply return the default settings
+ * @author EDGN
+ */
 public class TemplateSettings {
     private boolean header = true;
     private boolean footer = true;
 
     public TemplateSettings() {/*Empty for chaining settings*/}
+
+    public TemplateSettings setToDefault() {
+        this.header = true;
+        this.footer = true;
+        return this;
+    }
 
     public TemplateSettings setHeader(boolean headerState) {
         this.header = headerState;
@@ -23,4 +35,6 @@ public class TemplateSettings {
     public boolean hasFooter(){
         return this.footer;
     }
+
+
 }

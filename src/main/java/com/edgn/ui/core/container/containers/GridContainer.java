@@ -19,16 +19,6 @@ public class GridContainer extends ScrollContainer {
         return this;
     }
 
-    public GridContainer setScrollable(boolean enabled) {
-        super.setScrollable(enabled);
-        return this;
-    }
-
-    public GridContainer setScrollAxes(boolean vertical, boolean horizontal) {
-        super.setScrollAxes(vertical, horizontal);
-        return this;
-    }
-
     @Override
     protected void layoutChildren() {
         List<UIElement> kids = getChildren();
@@ -50,10 +40,13 @@ public class GridContainer extends ScrollContainer {
 
         for (UIElement child : kids) {
             if (!child.isVisible()) continue;
+            if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
+
             child.setX(xCursor);
             child.setY(yCursor);
             child.setWidth(cellW);
             child.updateConstraints();
+
             int ch = child.getCalculatedHeight();
             if (ch > rowMaxH) rowMaxH = ch;
 

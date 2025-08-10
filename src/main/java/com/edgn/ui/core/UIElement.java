@@ -42,6 +42,8 @@ public abstract class UIElement implements IElement {
     protected Runnable onFocusGainedHandler;
     protected Runnable onFocusLostHandler;
 
+    protected boolean ignoreParentScroll = false;
+
     public UIElement(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         this.styleSystem = styleSystem;
         this.x = x; this.y = y; this.width = width; this.height = height;
@@ -104,17 +106,26 @@ public abstract class UIElement implements IElement {
     }
 
     protected void updateInteractionBounds() {
-        int clipX = calculatedX;
-        int clipY = calculatedY;
-        int clipWidth = calculatedWidth;
-        int clipHeight = calculatedHeight;
+        int ox = calculatedX;
+        int oy = calculatedY;
+        int ow = calculatedWidth;
+        int oh = calculatedHeight;
+
+        if (!ignoreParentScroll && parent instanceof com.edgn.ui.core.container.containers.ScrollContainer sc) {
+            ox -= sc.getScrollX();
+            oy -= sc.getScrollY();
+        }
+
+        int clipX = ox;
+        int clipY = oy;
+        int clipWidth = ow;
+        int clipHeight = oh;
 
         if (parent != null) {
-            InteractionBounds parentBounds = parent.getInteractionBounds();
+            InteractionBounds parentBounds = parent.interactionBounds;
             if (parentBounds != null) {
                 int rightEdge = Math.min(clipX + clipWidth, parentBounds.maxX);
                 int bottomEdge = Math.min(clipY + clipHeight, parentBounds.maxY);
-
                 clipX = Math.max(clipX, parentBounds.minX);
                 clipY = Math.max(clipY, parentBounds.minY);
                 clipWidth = Math.max(0, rightEdge - clipX);
@@ -127,21 +138,21 @@ public abstract class UIElement implements IElement {
 
     public boolean canInteract(double mouseX, double mouseY) {
         if (!visible || !enabled || !rendered) return false;
-
         updateConstraints();
-        return mouseX >= calculatedX && mouseX <= calculatedX + calculatedWidth &&
-                mouseY >= calculatedY && mouseY <= calculatedY + calculatedHeight;
+        updateInteractionBounds();
+        InteractionBounds b = getInteractionBounds();
+        return b != null && b.contains(mouseX, mouseY);
     }
 
     public boolean contains(double mouseX, double mouseY) {
         updateConstraints();
-        return mouseX >= calculatedX && mouseX <= calculatedX + calculatedWidth &&
-                mouseY >= calculatedY && mouseY <= calculatedY + calculatedHeight;
+        updateInteractionBounds();
+        InteractionBounds b = getInteractionBounds();
+        return b != null && b.contains(mouseX, mouseY);
     }
 
     public boolean isInInteractionZone(double mouseX, double mouseY) {
         if (!rendered) return false;
-
         InteractionBounds bounds = getInteractionBounds();
         return bounds != null && bounds.contains(mouseX, mouseY);
     }
@@ -392,6 +403,11 @@ public abstract class UIElement implements IElement {
     public <T extends IElement> T setTextRenderer(TextRenderer textRenderer) {
         this.textRenderer = textRenderer != null ? textRenderer : MinecraftClient.getInstance().textRenderer;
         return (T) this;
+    }
+
+    public UIElement setIgnoreParentScroll(boolean value) {
+        this.ignoreParentScroll = value;
+        return this;
     }
 
     public CSSStyleApplier.ComputedStyles getComputedStyles() {

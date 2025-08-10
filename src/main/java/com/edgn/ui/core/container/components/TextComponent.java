@@ -1,4 +1,4 @@
-package com.edgn.ui.core.components;
+package com.edgn.ui.core.container.components;
 
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -13,20 +13,14 @@ import java.util.List;
 import java.util.Set;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
-public class TextComponent {
+public class TextComponent implements Component {
 
     public enum TextAlign { LEFT, CENTER, RIGHT }
     public enum VerticalAlign { TOP, MIDDLE, BOTTOM }
     public enum AnimationType { NONE, WAVE, TYPEWRITER, GLOW, PULSE, SHAKE }
     public enum EffectType { NONE, SOLID, GRADIENT, RAINBOW }
     public enum EffectMode { PULSE, HORIZONTAL_LTR, HORIZONTAL_RTL }
-
-    public enum TextOverflowMode {
-        NONE,
-        TRUNCATE,
-        WRAP,
-        SCALE
-    }
+    public enum TextOverflowMode { NONE, TRUNCATE, WRAP, SCALE }
 
     private final String text;
     private TextRenderer textRenderer;
@@ -86,12 +80,9 @@ public class TextComponent {
 
     public void render(DrawContext context, int x, int y, int maxWidth, int maxHeight) {
         if (text == null || text.isEmpty() || !animationEnabled) return;
-
         this.maxWidth = maxWidth - safetyMargin;
-
         String displayText = getProcessedText();
         if (displayText.isEmpty()) return;
-
         switch (overflowMode) {
             case WRAP -> renderWrapped(context, x, y, this.maxWidth, maxLines);
             case SCALE -> renderScaled(context, x, y, this.maxWidth, maxHeight, displayText);
@@ -111,25 +102,19 @@ public class TextComponent {
             renderSingle(context, x, y, maxWidth, maxHeight, displayText);
             return;
         }
-
         float scale = Math.max(minScale, (float) maxWidth / textWidth);
-
         context.getMatrices().push();
         context.getMatrices().scale(scale, scale, 1.0f);
-
         int scaledX = (int) (x / scale);
         int scaledY = (int) (y / scale);
         int scaledMaxWidth = (int) (maxWidth / scale);
         int scaledMaxHeight = (int) (maxHeight / scale);
-
         renderSingle(context, scaledX, scaledY, scaledMaxWidth, scaledMaxHeight, displayText);
-
         context.getMatrices().pop();
     }
 
     public void renderWrapped(DrawContext context, int x, int y, int maxWidth, int maxLines) {
         if (text == null || text.isEmpty() || textRenderer == null) return;
-
         List<OrderedText> orderedLines = textRenderer.wrapLines(Text.literal(this.text), maxWidth);
         List<String> stringLines = orderedLines.stream().map(orderedText -> {
             StringBuilder sb = new StringBuilder();
@@ -139,21 +124,16 @@ public class TextComponent {
             });
             return sb.toString();
         }).toList();
-
         int yOffset = 0;
         int charOffset = 0;
         int lineHeight = textRenderer.fontHeight + 2;
-
         for (int i = 0; i < Math.min(stringLines.size(), maxLines); i++) {
             String line = stringLines.get(i);
-
             if (i == maxLines - 1 && stringLines.size() > maxLines) {
                 line = truncateText(line, maxWidth);
             }
-
             int renderX = calculateX(x, maxWidth, line);
             renderInternal(context, line, renderX, y + yOffset, charOffset);
-
             yOffset += lineHeight;
             charOffset += stringLines.get(i).length();
         }
@@ -161,30 +141,23 @@ public class TextComponent {
 
     private void renderInternal(DrawContext context, String textToRender, int x, int y, int charOffset) {
         if (textToRender.isEmpty()) return;
-
         int renderX = x;
         int renderY = y;
-
         if (activeAnimations.contains(AnimationType.SHAKE)) {
             float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f * animationSpeed;
             renderX += (int) (Math.sin(time * 20) * shakeIntensity);
             renderY += (int) (Math.cos(time * 25) * shakeIntensity);
         }
-
         for (TextEffect effect : customEffects) {
             effect.apply(this, context, renderX, renderY);
         }
-
         if (hasGlow && !activeAnimations.contains(AnimationType.TYPEWRITER)) {
             renderGlow(context, textToRender, renderX, renderY);
         }
-
         if (hasShadow) {
             renderTextWithFormatting(context, textToRender, renderX + shadowOffsetX, renderY + shadowOffsetY, shadowColor, charOffset);
         }
-
         boolean needsPerCharRender = activeAnimations.contains(AnimationType.WAVE) || effectMode != EffectMode.PULSE;
-
         if (needsPerCharRender) {
             renderPerChar(context, textToRender, renderX, renderY, charOffset);
         } else {
@@ -194,7 +167,6 @@ public class TextComponent {
             }
             renderTextWithFormatting(context, textToRender, renderX, renderY, textColor, charOffset);
         }
-
         if (isUnderlined || isStrikethrough) {
             renderTextDecorations(context, textToRender, renderX, renderY, charOffset);
         }
@@ -204,11 +176,9 @@ public class TextComponent {
         for (int i = 0; i < displayText.length(); i++) {
             char c = displayText.charAt(i);
             String charStr = String.valueOf(c);
-
             int charX = x + textRenderer.getWidth(displayText.substring(0, i));
             int charY = y;
             int charColor = getCurrentColor(i + charOffset);
-
             if (activeAnimations.contains(AnimationType.WAVE)) {
                 float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
                 charY += (int) (Math.sin(time * animationSpeed * waveFrequency + (i + charOffset) * 0.5f) * waveAmplitude);
@@ -216,7 +186,6 @@ public class TextComponent {
             if (activeAnimations.contains(AnimationType.PULSE)) {
                 charColor = applyPulseEffect(charColor);
             }
-
             renderTextWithFormatting(context, charStr, charX, charY, charColor, i + charOffset);
         }
     }
@@ -224,7 +193,6 @@ public class TextComponent {
     private int getCurrentColor(int charIndex) {
         float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
         float positionFactor = (float) charIndex / 15.0f;
-
         return switch (effectType) {
             case SOLID -> this.startColor;
             case GRADIENT -> getGradientColorAt(time, positionFactor);
@@ -307,23 +275,21 @@ public class TextComponent {
     }
 
     private int interpolateColor(int color1, int color2, float factor) {
-        factor = Math.max(0.0f, Math.min(1.0f, factor));
+        float f = Math.max(0.0f, Math.min(1.0f, factor));
         int r1 = (color1 >> 16) & 0xFF, g1 = (color1 >> 8) & 0xFF, b1 = color1 & 0xFF, a1 = (color1 >> 24) & 0xFF;
         int r2 = (color2 >> 16) & 0xFF, g2 = (color2 >> 8) & 0xFF, b2 = color2 & 0xFF, a2 = (color2 >> 24) & 0xFF;
-        int r = (int) (r1 + (r2 - r1) * factor);
-        int g = (int) (g1 + (g2 - g1) * factor);
-        int b = (int) (b1 + (b2 - b1) * factor);
-        int a = (int) (a1 + (a2 - a1) * factor);
+        int r = (int) (r1 + (r2 - r1) * f);
+        int g = (int) (g1 + (r2 - g1) * f);
+        int b = (int) (b1 + (r2 - b1) * f);
+        int a = (int) (a1 + (r2 - a1) * f);
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     private String getProcessedText() {
         String displayText = getDisplayText();
-
         if (overflowMode == TextOverflowMode.TRUNCATE && maxWidth > 0) {
             displayText = truncateText(displayText, maxWidth);
         }
-
         return displayText;
     }
 
@@ -344,31 +310,19 @@ public class TextComponent {
     }
 
     private String truncateText(String text, int availableWidth) {
-        if (text == null || text.isEmpty() || availableWidth <= 0) {
-            return text;
-        }
-
+        if (text == null || text.isEmpty() || availableWidth <= 0) return text;
         int fullTextWidth = textRenderer.getWidth(text);
-        if (fullTextWidth <= availableWidth) {
-            return text;
-        }
-
+        if (fullTextWidth <= availableWidth) return text;
         int ellipsisWidth = textRenderer.getWidth(ellipsis);
-        if (ellipsisWidth >= availableWidth) {
-            return "";
-        }
-
+        if (ellipsisWidth >= availableWidth) return "";
         int maxTextWidth = availableWidth - ellipsisWidth;
-
         int left = 0;
         int right = text.length();
         int bestLength = 0;
-
         while (left <= right) {
             int mid = (left + right) / 2;
             String substring = text.substring(0, mid);
             int substringWidth = textRenderer.getWidth(substring);
-
             if (substringWidth <= maxTextWidth) {
                 bestLength = mid;
                 left = mid + 1;
@@ -376,14 +330,11 @@ public class TextComponent {
                 right = mid - 1;
             }
         }
-
         String result = text.substring(0, bestLength) + ellipsis;
-
         while (textRenderer.getWidth(result) > availableWidth && bestLength > 0) {
             bestLength--;
             result = text.substring(0, bestLength) + ellipsis;
         }
-
         return result;
     }
 
@@ -433,56 +384,18 @@ public class TextComponent {
         return (Math.min(255, newAlpha) << 24) | (r << 16) | (g << 8) | b;
     }
 
-    public TextComponent setOverflowMode(TextOverflowMode mode) {
-        this.overflowMode = mode;
-        return this;
-    }
-
-    public TextComponent setMaxWidth(int maxWidth) {
-        this.maxWidth = maxWidth;
-        return this;
-    }
-
-    public TextComponent setMaxLines(int maxLines) {
-        this.maxLines = Math.max(1, maxLines);
-        return this;
-    }
-
-    public TextComponent setEllipsis(String ellipsis) {
-        this.ellipsis = ellipsis != null ? ellipsis : "...";
-        return this;
-    }
-
-    public TextComponent setSafetyMargin(int margin) {
-        this.safetyMargin = Math.max(0, margin);
-        return this;
-    }
-
-    public TextComponent setMinScale(float minScale) {
-        this.minScale = Math.max(0.1f, Math.min(1.0f, minScale));
-        return this;
-    }
-
-    public TextComponent truncate() {
-        return setOverflowMode(TextOverflowMode.TRUNCATE);
-    }
-
-    public TextComponent truncate(int maxWidth) {
-        return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth);
-    }
-
-    public TextComponent wrap(int maxLines) {
-        return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines);
-    }
-
-    public TextComponent autoScale() {
-        return setOverflowMode(TextOverflowMode.SCALE);
-    }
-
-    public TextComponent autoScale(float minScale) {
-        return setOverflowMode(TextOverflowMode.SCALE).setMinScale(minScale);
-    }
-
+    //boring getters and setters, which is why they are coded in one line (thx LLM for doing this boring job instead of me)
+    public TextComponent setOverflowMode(TextOverflowMode mode) { this.overflowMode = mode; return this; }
+    public TextComponent setMaxWidth(int maxWidth) { this.maxWidth = maxWidth; return this; }
+    public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
+    public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
+    public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
+    public TextComponent setMinScale(float minScale) { this.minScale = Math.max(0.1f, Math.min(1.0f, minScale)); return this; }
+    public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
+    public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
+    public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }
+    public TextComponent autoScale() { return setOverflowMode(TextOverflowMode.SCALE); }
+    public TextComponent autoScale(float minScale) { return setOverflowMode(TextOverflowMode.SCALE).setMinScale(minScale); }
     public String getText() { return text; }
     public int getBaseColor() { return startColor; }
     public TextAlign getTextAlign() { return textAlign; }
@@ -497,72 +410,35 @@ public class TextComponent {
     public String getEllipsis() { return ellipsis; }
     public int getSafetyMargin() { return safetyMargin; }
     public float getMinScale() { return minScale; }
-
-    public void startAnimation() {
-        this.animationEnabled = true;
-        this.animationStartTime = System.currentTimeMillis();
-        if (activeAnimations.contains(AnimationType.TYPEWRITER)) {
-            this.typewriterCharCount = 0;
-            this.lastTypewriterUpdate = System.currentTimeMillis();
-        }
-    }
-
+    public void startAnimation() { this.animationEnabled = true; this.animationStartTime = System.currentTimeMillis(); if (activeAnimations.contains(AnimationType.TYPEWRITER)) { this.typewriterCharCount = 0; this.lastTypewriterUpdate = System.currentTimeMillis(); } }
     public void stopAnimation() { this.animationEnabled = false; }
     public void resetAnimation() { startAnimation(); }
-
-    public TextComponent color(int color) {
-        this.effectType = EffectType.SOLID;
-        this.startColor = color;
-        return this;
-    }
-
-    public TextComponent gradient(int startColor, int endColor, EffectMode mode, float speed) {
-        this.effectType = EffectType.GRADIENT;
-        this.startColor = startColor;
-        this.endColor = endColor;
-        this.effectMode = mode;
-        this.effectSpeed = speed;
-        return this;
-    }
+    public TextComponent color(int color) { this.effectType = EffectType.SOLID; this.startColor = color; return this; }
+    public TextComponent gradient(int startColor, int endColor, EffectMode mode, float speed) { this.effectType = EffectType.GRADIENT; this.startColor = startColor; this.endColor = endColor; this.effectMode = mode; this.effectSpeed = speed; return this; }
     public TextComponent gradient(int startColor, int endColor, EffectMode mode) { return gradient(startColor, endColor, mode, 1.0f); }
-
-    public TextComponent rainbow(EffectMode mode, float speed) {
-        this.effectType = EffectType.RAINBOW;
-        this.effectMode = mode;
-        this.effectSpeed = speed;
-        return this;
-    }
+    public TextComponent rainbow(EffectMode mode, float speed) { this.effectType = EffectType.RAINBOW; this.effectMode = mode; this.effectSpeed = speed; return this; }
     public TextComponent rainbow(EffectMode mode) { return rainbow(mode, 1.0f); }
     public TextComponent rainbow() { return rainbow(EffectMode.HORIZONTAL_LTR, 1.0f); }
-
     public TextComponent align(TextAlign align) { this.textAlign = align; return this; }
     public TextComponent verticalAlign(VerticalAlign align) { this.verticalAlign = align; return this; }
     public TextComponent shadow(int color, int offsetX, int offsetY) { this.hasShadow = true; this.shadowColor = color; this.shadowOffsetX = offsetX; this.shadowOffsetY = offsetY; return this; }
     public TextComponent shadow() { return shadow(0xFF000000, 1, 1); }
-
     public TextComponent wave(float amplitude, float frequency, float speed) { this.activeAnimations.add(AnimationType.WAVE); this.waveAmplitude = amplitude; this.waveFrequency = frequency; this.animationSpeed = speed; return this; }
     public TextComponent wave() { return wave(5.0f, 2.0f, 1.0f); }
-
     public TextComponent typewriter(int delayMs) { this.activeAnimations.add(AnimationType.TYPEWRITER); this.typewriterDelay = delayMs; return this; }
     public TextComponent typewriter() { return typewriter(100); }
-
     public TextComponent glow(int color, float radius, float intensity) { this.hasGlow = true; this.glowColor = color; this.glowRadius = radius; this.glowIntensity = intensity; return this; }
     public TextComponent glow(int color) { return glow(color, 3.0f, 1.0f); }
     public TextComponent glow() { return glow(0x80FFFFFF, 3.0f, 1.0f); }
-
     public TextComponent pulse(float min, float max, float speed) { this.activeAnimations.add(AnimationType.PULSE); this.pulseMin = min; this.pulseMax = max; this.animationSpeed = speed; return this; }
     public TextComponent pulse() { return pulse(0.8f, 1.2f, 1.0f); }
-
     public TextComponent shake(float intensity, float speed) { this.activeAnimations.add(AnimationType.SHAKE); this.shakeIntensity = intensity; this.animationSpeed = speed; return this; }
     public TextComponent shake() { return shake(2.0f, 1.0f); }
-
     public TextComponent bold() { this.isBold = true; return this; }
     public TextComponent italic() { this.isItalic = true; return this; }
     public TextComponent underlined() { this.isUnderlined = true; return this; }
     public TextComponent strikethrough() { this.isStrikethrough = true; return this; }
-
     public TextComponent addEffect(TextEffect effect) { this.customEffects.add(effect); return this; }
-
     public TextComponent asTitle() { return color(0xFF0D6EFD); }
     public TextComponent asSubtitle() { return color(0xFF888888).italic(); }
     public TextComponent asError() { return color(0xFFDC3545).shake(); }
@@ -572,7 +448,7 @@ public class TextComponent {
     public TextComponent asFancy() { return rainbow(EffectMode.HORIZONTAL_LTR).glow().shadow().wave().pulse().bold(); }
 
     public interface TextEffect {
-        void apply(TextComponent textComponent, DrawContext context, int x, int y);
+        void apply(TextComponent textModel, DrawContext context, int x, int y);
     }
 
     public boolean hasCustomStyling() {
@@ -585,7 +461,6 @@ public class TextComponent {
 
     public TextComponent cloneWithNewText(String newText) {
         TextComponent c = new TextComponent(newText, this.textRenderer);
-
         c.overflowMode = this.overflowMode;
         c.ellipsis = this.ellipsis;
         c.maxWidth = this.maxWidth;
@@ -620,11 +495,8 @@ public class TextComponent {
         c.isStrikethrough = this.isStrikethrough;
         c.activeAnimations.addAll(this.activeAnimations);
         c.customEffects.addAll(this.customEffects);
-
         return c;
     }
 
-    public void setTextRenderer(TextRenderer textRenderer) {
-        this.textRenderer = textRenderer;
-    }
+    public void setTextRenderer(TextRenderer textRenderer) { this.textRenderer = textRenderer; }
 }

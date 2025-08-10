@@ -1,6 +1,6 @@
 package com.edgn.examples;
 
-import com.edgn.ui.core.components.TextComponent;
+import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.core.container.containers.FlexContainer;
 import com.edgn.ui.core.container.containers.GridContainer;
@@ -66,7 +66,6 @@ public class GridContainerExample extends BaseTemplate {
                 .setColumns(3)
                 .setScrollable(true)
                 .setScrollAxes(true, false)
-                .setDragScrollEnabled(true)
                 .addClass(StyleKey.P_4, StyleKey.GAP_4, StyleKey.BG_BACKGROUND);
 
         for (int i = 1; i <= 36; i++) {

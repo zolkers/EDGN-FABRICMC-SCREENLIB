@@ -21,16 +21,6 @@ public class ListContainer extends ScrollContainer {
         return this;
     }
 
-    public ListContainer setScrollable(boolean enabled) {
-        super.setScrollable(enabled);
-        return this;
-    }
-
-    public ListContainer setScrollAxes(boolean vertical, boolean horizontal) {
-        super.setScrollAxes(vertical, horizontal);
-        return this;
-    }
-
     @Override
     protected void layoutChildren() {
         List<UIElement> kids = getChildren();
@@ -47,6 +37,7 @@ public class ListContainer extends ScrollContainer {
             int vw = getViewportWidth();
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
+                if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
                 child.setX(xCursor);
                 child.setY(yCursor);
                 child.setWidth(vw);
@@ -57,6 +48,7 @@ public class ListContainer extends ScrollContainer {
             int vh = getViewportHeight();
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
+                if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
                 child.setX(xCursor);
                 child.setY(yCursor);
                 child.setHeight(vh);

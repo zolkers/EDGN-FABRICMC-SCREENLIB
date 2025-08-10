@@ -1,6 +1,6 @@
 package com.edgn.examples;
 
-import com.edgn.ui.core.components.TextComponent;
+import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.core.container.containers.FlexContainer;
 import com.edgn.ui.core.item.items.ButtonItem;

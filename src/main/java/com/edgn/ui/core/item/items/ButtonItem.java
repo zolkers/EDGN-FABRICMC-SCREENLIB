@@ -1,6 +1,6 @@
 package com.edgn.ui.core.item.items;
 
-import com.edgn.ui.core.components.TextComponent;
+import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.item.BaseItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
@@ -191,7 +191,6 @@ public class ButtonItem extends BaseItem {
     public ButtonItem asInfoButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.INFO, StyleKey.HOVER_BRIGHTEN); }
     public ButtonItem asGhostButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.BG_OPACITY_0, StyleKey.HOVER_BRIGHTEN); }
     public ButtonItem asFancyButton() { return addClass(StyleKey.HOVER_SCALE, StyleKey.SHADOW_LG); }
-
 
     @Override public ButtonItem addClass(StyleKey... keys) { super.addClass(keys); return this; }
     @Override public ButtonItem removeClass(StyleKey key) { super.removeClass(key); return this; }

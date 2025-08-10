@@ -1,6 +1,7 @@
-package com.edgn.ui.core.container;
+package com.edgn.ui.core.container.containers;
 
 import com.edgn.ui.core.UIElement;
+import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
 import net.minecraft.client.gui.DrawContext;

@@ -1,6 +1,6 @@
 package com.edgn;
 
-import com.edgn.example.ExampleScreen;
+import com.edgn.examples.FlexContainerExample;
 import net.fabricmc.api.ModInitializer;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -37,7 +37,7 @@ public class EdgnScreenLib implements ModInitializer {
 
 			ClientTickEvents.END_CLIENT_TICK.register(client -> {
 				if (openExampleScreenKey.wasPressed()) {
-					client.setScreen(new ExampleScreen(null));
+					client.setScreen(new FlexContainerExample(null));
 				}
 			});
 		}

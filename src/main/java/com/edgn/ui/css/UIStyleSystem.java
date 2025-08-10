@@ -172,15 +172,15 @@ public class UIStyleSystem {
         styleValues.put(StyleKey.FLEX_BASIS_10, 10);
         styleValues.put(StyleKey.FLEX_BASIS_15, 15);
         styleValues.put(StyleKey.FLEX_BASIS_20, 20);
-        styleValues.put(StyleKey.FLEX_BASIS_25, 25);  // ≈ 4 colonnes
+        styleValues.put(StyleKey.FLEX_BASIS_25, 25);
         styleValues.put(StyleKey.FLEX_BASIS_30, 30);
-        styleValues.put(StyleKey.FLEX_BASIS_33, 33);  // ≈ 3 colonnes
+        styleValues.put(StyleKey.FLEX_BASIS_33, 33);
         styleValues.put(StyleKey.FLEX_BASIS_40, 40);
-        styleValues.put(StyleKey.FLEX_BASIS_50, 50);  // ≈ 2 colonnes
+        styleValues.put(StyleKey.FLEX_BASIS_50, 50);
         styleValues.put(StyleKey.FLEX_BASIS_60, 60);
-        styleValues.put(StyleKey.FLEX_BASIS_66, 66);  // ≈ 3/2 colonnes
+        styleValues.put(StyleKey.FLEX_BASIS_66, 66);
         styleValues.put(StyleKey.FLEX_BASIS_75, 75);
-        styleValues.put(StyleKey.FLEX_BASIS_100, 100); // plein écran
+        styleValues.put(StyleKey.FLEX_BASIS_100, 100);
 
         styleValues.put(StyleKey.FLEX_GROW_0, 0);
         styleValues.put(StyleKey.FLEX_GROW_1, 1);

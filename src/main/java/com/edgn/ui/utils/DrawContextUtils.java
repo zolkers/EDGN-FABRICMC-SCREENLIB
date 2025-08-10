@@ -198,7 +198,13 @@ public class DrawContextUtils {
      * @param color    the tint color (ARGB)
      */
     public static void drawImage(Identifier id, int x1, int y1, int x2, int y2, int rotation, boolean parity, Color color) {
-        int[][] texCoords = {{0, 1}, {1, 1}, {1, 0}, {0, 0}};
+        int[][] texCoords = {
+                {0, 1},
+                {1, 1},
+                {1, 0},
+                {0, 0}
+        };
+
         for (int i = 0; i < rotation % 4; i++) {
             int temp1 = texCoords[3][0], temp2 = texCoords[3][1];
             texCoords[3][0] = texCoords[2][0];
@@ -218,6 +224,7 @@ public class DrawContextUtils {
             texCoords[3][0] = texCoords[2][0];
             texCoords[2][0] = temp1;
         }
+
         RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
         RenderSystem.setShader(ShaderProgramKeys.POSITION_TEX_COLOR);
         RenderSystem.setShaderTexture(0, id);

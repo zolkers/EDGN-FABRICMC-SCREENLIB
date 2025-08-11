@@ -111,9 +111,9 @@ public abstract class UIElement implements IElement {
         int ow = calculatedWidth;
         int oh = calculatedHeight;
 
-        if (!ignoreParentScroll && parent instanceof com.edgn.ui.core.container.containers.ScrollContainer sc) {
-            ox -= sc.getScrollX();
-            oy -= sc.getScrollY();
+        if (parent != null) {
+            ox += parent.getChildInteractionOffsetX(this);
+            oy += parent.getChildInteractionOffsetY(this);
         }
 
         int clipX = ox;
@@ -136,63 +136,51 @@ public abstract class UIElement implements IElement {
         interactionBounds = new InteractionBounds(clipX, clipY, clipWidth, clipHeight);
     }
 
+    protected int getChildInteractionOffsetX(UIElement child) { return 0; }
+    protected int getChildInteractionOffsetY(UIElement child) { return 0; }
+
+    public boolean ignoresParentScroll() { return ignoreParentScroll; }
+    public UIElement setIgnoreParentScroll(boolean value) { this.ignoreParentScroll = value; return this; }
+
     public boolean canInteract(double mouseX, double mouseY) {
         if (!visible || !enabled || !rendered) return false;
         updateConstraints();
         updateInteractionBounds();
-        InteractionBounds b = getInteractionBounds();
+        InteractionBounds b = interactionBounds;
         return b != null && b.contains(mouseX, mouseY);
     }
 
     public boolean contains(double mouseX, double mouseY) {
         updateConstraints();
         updateInteractionBounds();
-        InteractionBounds b = getInteractionBounds();
+        InteractionBounds b = interactionBounds;
         return b != null && b.contains(mouseX, mouseY);
     }
 
     public boolean isInInteractionZone(double mouseX, double mouseY) {
         if (!rendered) return false;
-        InteractionBounds bounds = getInteractionBounds();
+        updateConstraints();
+        updateInteractionBounds();
+        InteractionBounds bounds = interactionBounds;
         return bounds != null && bounds.contains(mouseX, mouseY);
     }
 
-    protected void markAsRendered() {
-        this.rendered = true;
-    }
+    protected void markAsRendered() { this.rendered = true; }
 
     public void markAsNotRendered() {
         this.rendered = false;
-        if (hovered) {
-            onMouseLeave();
-        }
-        if (focused) {
-            styleSystem.getEventManager().setFocus(null);
-        }
+        if (hovered) onMouseLeave();
+        if (focused) styleSystem.getEventManager().setFocus(null);
     }
 
-    public int getCalculatedX() {
-        if (constraintsDirty) updateConstraints();
-        return calculatedX;
-    }
-
-    public int getCalculatedY() {
-        if (constraintsDirty) updateConstraints();
-        return calculatedY;
-    }
-
-    public int getCalculatedWidth() {
-        if (constraintsDirty) updateConstraints();
-        return calculatedWidth;
-    }
-
-    public int getCalculatedHeight() {
-        if (constraintsDirty) updateConstraints();
-        return calculatedHeight;
-    }
+    public int getCalculatedX() { if (constraintsDirty) updateConstraints(); return calculatedX; }
+    public int getCalculatedY() { if (constraintsDirty) updateConstraints(); return calculatedY; }
+    public int getCalculatedWidth() { if (constraintsDirty) updateConstraints(); return calculatedWidth; }
+    public int getCalculatedHeight() { if (constraintsDirty) updateConstraints(); return calculatedHeight; }
 
     public InteractionBounds getInteractionBounds() {
         updateConstraints();
+        updateInteractionBounds();
         return interactionBounds;
     }
 
@@ -212,52 +200,21 @@ public abstract class UIElement implements IElement {
         return (T) this;
     }
 
-    public void setX(int x) {
-        this.x = x;
-        markConstraintsDirty();
-    }
-
-    public void setY(int y) {
-        this.y = y;
-        markConstraintsDirty();
-    }
-
-    public void setWidth(int width) {
-        this.width = width;
-        markConstraintsDirty();
-    }
-
-    public void setHeight(int height) {
-        this.height = height;
-        markConstraintsDirty();
-    }
-
-    public void setParent(UIElement parent) {
-        this.parent = parent;
-        markConstraintsDirty();
-    }
+    public void setX(int x) { this.x = x; markConstraintsDirty(); }
+    public void setY(int y) { this.y = y; markConstraintsDirty(); }
+    public void setWidth(int width) { this.width = width; markConstraintsDirty(); }
+    public void setHeight(int height) { this.height = height; markConstraintsDirty(); }
+    public void setParent(UIElement parent) { this.parent = parent; markConstraintsDirty(); }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T setZIndex(ZIndex zIndex) {
-        this.zIndex = zIndex != null ? zIndex : ZIndex.CONTENT;
-        return (T) this;
-    }
-
+    public <T extends IElement> T setZIndex(ZIndex zIndex) { this.zIndex = zIndex != null ? zIndex : ZIndex.CONTENT; return (T) this; }
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T setZIndex(ZIndex.Layer layer) {
-        this.zIndex = new ZIndex(layer);
-        return (T) this;
-    }
-
+    public <T extends IElement> T setZIndex(ZIndex.Layer layer) { this.zIndex = new ZIndex(layer); return (T) this; }
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T setZIndex(ZIndex.Layer layer, int priority) {
-        this.zIndex = new ZIndex(layer, priority);
-        return (T) this;
-    }
-
+    public <T extends IElement> T setZIndex(ZIndex.Layer layer, int priority) { this.zIndex = new ZIndex(layer, priority); return (T) this; }
     @SuppressWarnings("unchecked")
     @Override
     public <T extends IElement> T setZIndex(int intZIndex) {
@@ -279,24 +236,13 @@ public abstract class UIElement implements IElement {
 
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
         if (!canInteract(mouseX, mouseY)) return false;
-        if (onClickHandler != null) {
-            onClickHandler.run();
-            return true;
-        }
+        if (onClickHandler != null) { onClickHandler.run(); return true; }
         return false;
     }
 
-    public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        return false;
-    }
-
-    public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) {
-        return false;
-    }
-
-    public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        return false;
-    }
+    public boolean onMouseRelease(double mouseX, double mouseY, int button) { return false; }
+    public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) { return false; }
+    public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) { return false; }
 
     public boolean onCharTyped(char chr, int modifiers) { return false; }
     public boolean onKeyPress(int keyCode, int scanCode, int modifiers) { return false; }
@@ -304,7 +250,6 @@ public abstract class UIElement implements IElement {
     public void onMouseMove(double mouseX, double mouseY) {}
 
     public void onMouseEnter() {
-        if (!canInteract(0, 0) && !rendered) return;
         hovered = true;
         if (onMouseEnterHandler != null) onMouseEnterHandler.run();
     }
@@ -327,57 +272,30 @@ public abstract class UIElement implements IElement {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T onClick(Runnable handler) {
-        this.onClickHandler = handler;
-        return (T) this;
-    }
+    public <T extends IElement> T onClick(Runnable handler) { this.onClickHandler = handler; return (T) this; }
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T onMouseEnter(Runnable handler) { this.onMouseEnterHandler = handler; return (T) this; }
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T onMouseLeave(Runnable handler) { this.onMouseLeaveHandler = handler; return (T) this; }
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T onFocusGained(Runnable handler) { this.onFocusGainedHandler = handler; return (T) this; }
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends IElement> T onFocusLost(Runnable handler) { this.onFocusLostHandler = handler; return (T) this; }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T onMouseEnter(Runnable handler) {
-        this.onMouseEnterHandler = handler;
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T extends IElement> T onMouseLeave(Runnable handler) {
-        this.onMouseLeaveHandler = handler;
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T extends IElement> T onFocusGained(Runnable handler) {
-        this.onFocusGainedHandler = handler;
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T extends IElement> T onFocusLost(Runnable handler) {
-        this.onFocusLostHandler = handler;
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T extends IElement> T setConstraints(LayoutConstraints constraints) {
-        this.constraints = constraints;
-        markConstraintsDirty();
-        return (T) this;
-    }
+    public <T extends IElement> T setConstraints(LayoutConstraints constraints) { this.constraints = constraints; markConstraintsDirty(); return (T) this; }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends IElement> T setVisible(boolean visible) {
         boolean wasVisible = this.visible;
         this.visible = visible;
-
-        if (wasVisible && !visible) {
-            markAsNotRendered();
-        }
-
+        if (wasVisible && !visible) markAsNotRendered();
         return (T) this;
     }
 
@@ -385,16 +303,10 @@ public abstract class UIElement implements IElement {
     @Override
     public <T extends IElement> T setEnabled(boolean enabled) {
         this.enabled = enabled;
-
         if (!enabled) {
-            if (hovered) {
-                onMouseLeave();
-            }
-            if (focused) {
-                styleSystem.getEventManager().setFocus(null);
-            }
+            if (hovered) onMouseLeave();
+            if (focused) styleSystem.getEventManager().setFocus(null);
         }
-
         return (T) this;
     }
 
@@ -405,11 +317,6 @@ public abstract class UIElement implements IElement {
         return (T) this;
     }
 
-    public UIElement setIgnoreParentScroll(boolean value) {
-        this.ignoreParentScroll = value;
-        return this;
-    }
-
     public CSSStyleApplier.ComputedStyles getComputedStyles() {
         if (!stylesComputed || constraintsDirty) {
             cachedStyles = CSSStyleApplier.computeStyles(this);
@@ -418,17 +325,9 @@ public abstract class UIElement implements IElement {
         return cachedStyles;
     }
 
-    protected int getBgColor() {
-        return getComputedStyles().backgroundColor;
-    }
-
-    protected int getBorderRadius() {
-        return getComputedStyles().borderRadius;
-    }
-
-    protected Shadow getShadow() {
-        return getComputedStyles().shadow;
-    }
+    protected int getBgColor() { return getComputedStyles().backgroundColor; }
+    protected int getBorderRadius() { return getComputedStyles().borderRadius; }
+    protected Shadow getShadow() { return getComputedStyles().shadow; }
 
     public int getPaddingTop() { return getComputedStyles().paddingTop; }
     public int getPaddingRight() { return getComputedStyles().paddingRight; }
@@ -474,7 +373,6 @@ public abstract class UIElement implements IElement {
             markAsNotRendered();
             return;
         }
-
         markAsRendered();
         render(context);
     }
@@ -498,8 +396,6 @@ public abstract class UIElement implements IElement {
             return x >= minX && x < maxX && y >= minY && y < maxY;
         }
 
-        public boolean isValid() {
-            return width > 0 && height > 0;
-        }
+        public boolean isValid() { return width > 0 && height > 0; }
     }
 }

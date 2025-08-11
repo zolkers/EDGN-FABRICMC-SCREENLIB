@@ -62,13 +62,24 @@ public class ScrollContainer extends BaseContainer {
     public boolean isVerticalScrollEnabled() { return verticalScroll; }
     public boolean isHorizontalScrollEnabled() { return horizontalScroll; }
 
-    @Override
     protected void updateInteractionBounds() {
-        int clipX = getViewportX();
-        int clipY = getViewportY();
-        int clipW = getViewportWidth();
-        int clipH = getViewportHeight();
-        this.interactionBounds = new InteractionBounds(clipX, clipY, clipW, clipH);
+        this.interactionBounds = new InteractionBounds(
+                getViewportX(), getViewportY(), getViewportWidth(), getViewportHeight()
+        );
+    }
+
+    @Override
+    protected int getChildInteractionOffsetX(UIElement child) {
+        if (child instanceof ScrollbarItem) return 0;
+        if (child.ignoresParentScroll()) return 0;
+        return -scrollX;
+    }
+
+    @Override
+    protected int getChildInteractionOffsetY(UIElement child) {
+        if (child instanceof ScrollbarItem) return 0;
+        if (child.ignoresParentScroll()) return 0;
+        return -scrollY;
     }
 
     protected void layoutChildren() {}
@@ -253,20 +264,5 @@ public class ScrollContainer extends BaseContainer {
         if (horizontalScroll) { scrollX -= (int) Math.round(scrollDelta * scrollStep); used = true; }
         clampScroll();
         return used;
-    }
-
-    @Override
-    public boolean onMouseClick(double mouseX, double mouseY, int button) {
-        return super.onMouseClick(mouseX, mouseY, button);
-    }
-
-    @Override
-    public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
-    }
-
-    @Override
-    public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        return super.onMouseRelease(mouseX, mouseY, button);
     }
 }

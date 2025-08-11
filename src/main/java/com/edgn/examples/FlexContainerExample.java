@@ -84,62 +84,62 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        content.addChild(button(uiSystem, "Hi", StyleKey.PRIMARY, true)
+        content.addChild(button(uiSystem, "Hi", true)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "I'm a button", StyleKey.SECONDARY, false)
+        content.addChild(button(uiSystem, "I'm a button", false)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "Might be trimmed cuz too loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong", StyleKey.SUCCESS, true)
+        content.addChild(button(uiSystem, "Might be trimmed cuz too loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong", true)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, ":)", StyleKey.INFO, false)
+        content.addChild(button(uiSystem, ":)", false)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "I love melon", StyleKey.WARNING, true)
+        content.addChild(button(uiSystem, "I love melon", true)
                 .addClass(StyleKey.FLEX_BASIS_33)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "EDGN ?!", StyleKey.SECONDARY, true)
+        content.addChild(button(uiSystem, "EDGN ?!", true)
                 .addClass(StyleKey.FLEX_BASIS_33)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "YAY", StyleKey.PRIMARY, false)
+        content.addChild(button(uiSystem, "YAY", false)
                 .addClass(StyleKey.FLEX_BASIS_33)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "AWESOME !", StyleKey.SUCCESS, false)
+        content.addChild(button(uiSystem, "AWESOME !", false)
                 .addClass(StyleKey.FLEX_BASIS_50)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "Idk if it's easy to use", StyleKey.INFO, true)
+        content.addChild(button(uiSystem, "Idk if it's easy to use", true)
                 .addClass(StyleKey.FLEX_BASIS_50)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "AHAHAHAHHAHAHAHAHAHAHA", StyleKey.SECONDARY, false)
+        content.addChild(button(uiSystem, "AHAHAHAHHAHAHAHAHAHAHA", false)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", StyleKey.PRIMARY, false)
+        content.addChild(button(uiSystem, "YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", false)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
         );
 
-        content.addChild(button(uiSystem, "LEAVE THE SCREEN", StyleKey.DANGER, true)
+        content.addChild(button(uiSystem, "LEAVE THE SCREEN", true)
                 .addClass(StyleKey.FLEX_BASIS_25)
                 .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
                 .onClick(this::close)
@@ -148,11 +148,11 @@ public class FlexContainerExample extends BaseTemplate {
         return content;
     }
 
-    private ButtonItem button(UIStyleSystem ui, String label, StyleKey tone, boolean scaleOnHover) {
+    private ButtonItem button(UIStyleSystem ui, String label, boolean scaleOnHover) {
         ButtonItem b = new ButtonItem(ui, 0, 0, 220, 48)
                 .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR).wave())
                 .addClass(
-                        tone,
+                        StyleKey.PRIMARY,
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_LG,
                         StyleKey.P_3,

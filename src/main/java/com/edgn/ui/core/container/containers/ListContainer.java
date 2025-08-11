@@ -29,35 +29,64 @@ public class ListContainer extends ScrollContainer {
 
         int contentX = getViewportX();
         int contentY = getViewportY();
+        int vw = getViewportWidth();
+        int vh = getViewportHeight();
         int gap = getGap();
 
         int xCursor = contentX;
         int yCursor = contentY;
 
         if (orientation == Orientation.VERTICAL) {
-            int vw = getViewportWidth();
+            int prevMB = 0;
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
                 if (child instanceof ScrollbarItem) continue;
-                child.setX(xCursor);
+
+                int mt = child.getMarginTop();
+                int mb = child.getMarginBottom();
+                int ml = child.getMarginLeft();
+                int mr = child.getMarginRight();
+
+                yCursor += (yCursor == contentY ? 0 : gap) + prevMB + mt;
+
+                int cx = contentX + ml;
+                int cw = Math.max(0, vw - ml - mr);
+
+                child.setX(cx);
                 child.setY(yCursor);
-                child.setWidth(vw);
+                child.setWidth(cw);
                 child.updateConstraints();
                 child.getInteractionBounds();
-                yCursor += child.getCalculatedHeight() + gap;
+
+                yCursor += child.getCalculatedHeight();
+                prevMB = mb;
             }
         } else {
-            int vh = getViewportHeight();
+            int prevMR = 0;
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
                 if (child instanceof ScrollbarItem) continue;
+
+                int mt = child.getMarginTop();
+                int mb = child.getMarginBottom();
+                int ml = child.getMarginLeft();
+                int mr = child.getMarginRight();
+
+                xCursor += (xCursor == contentX ? 0 : gap) + prevMR + ml;
+
+                int cy = contentY + mt;
+                int ch = Math.max(0, vh - mt - mb);
+
                 child.setX(xCursor);
-                child.setY(yCursor);
-                child.setHeight(vh);
+                child.setY(cy);
+                child.setHeight(ch);
                 child.updateConstraints();
                 child.getInteractionBounds();
-                xCursor += child.getCalculatedWidth() + gap;
+
+                xCursor += child.getCalculatedWidth();
+                prevMR = mr;
             }
         }
     }
+
 }

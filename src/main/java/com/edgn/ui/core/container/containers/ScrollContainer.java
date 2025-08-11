@@ -64,9 +64,11 @@ public class ScrollContainer extends BaseContainer {
 
     @Override
     protected void updateInteractionBounds() {
-        this.interactionBounds = new InteractionBounds(
-                getViewportX(), getViewportY(), getViewportWidth(), getViewportHeight()
-        );
+        int innerX = calculatedX + getPaddingLeft();
+        int innerY = calculatedY + getPaddingTop();
+        int innerW = baseViewportWidth();
+        int innerH = baseViewportHeight();
+        this.interactionBounds = new InteractionBounds(innerX, innerY, innerW, innerH);
     }
 
     @Override
@@ -212,8 +214,8 @@ public class ScrollContainer extends BaseContainer {
     public void render(DrawContext context) {
         if (!visible) {
             markAsNotRendered();
-            List<UIElement> children = getChildren();
-            for (UIElement child : children) child.markAsNotRendered();
+            List<UIElement> cs = getChildren();
+            for (UIElement c : cs) c.markAsNotRendered();
             return;
         }
         markAsRendered();
@@ -233,22 +235,36 @@ public class ScrollContainer extends BaseContainer {
         ensureScrollbars();
         updateInteractionBounds();
 
-        InteractionBounds bounds = getInteractionBounds();
-        context.enableScissor(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
-        try {
-            List<UIElement> children = getChildren();
-            for (UIElement child : children) {
-                if (child == null || !child.isVisible()) continue;
-                boolean isScrollbar = child instanceof ScrollbarItem;
+        int vpMinX = getViewportX();
+        int vpMinY = getViewportY();
+        int vpMaxX = vpMinX + getViewportWidth();
+        int vpMaxY = vpMinY + getViewportHeight();
 
-                if (!isScrollbar) {
-                    context.getMatrices().push();
-                    context.getMatrices().translate((float) -scrollX, (float) -scrollY, 0.0f);
-                    child.renderElement(context);
-                    context.getMatrices().pop();
-                } else {
-                    child.renderElement(context);
-                }
+        int inMinX = calculatedX + getPaddingLeft();
+        int inMinY = calculatedY + getPaddingTop();
+        int inMaxX = inMinX + baseViewportWidth();
+        int inMaxY = inMinY + baseViewportHeight();
+
+        context.enableScissor(vpMinX, vpMinY, vpMaxX, vpMaxY);
+        try {
+            for (UIElement child : getChildren()) {
+                if (child == null || !child.isVisible()) continue;
+                if (child instanceof ScrollbarItem) continue;
+                context.getMatrices().push();
+                context.getMatrices().translate((float) -scrollX, (float) -scrollY, 0.0f);
+                child.renderElement(context);
+                context.getMatrices().pop();
+            }
+        } finally {
+            context.disableScissor();
+        }
+
+        context.enableScissor(inMinX, inMinY, inMaxX, inMaxY);
+        try {
+            for (UIElement child : getChildren()) {
+                if (child == null || !child.isVisible()) continue;
+                if (!(child instanceof ScrollbarItem)) continue;
+                child.renderElement(context);
             }
         } finally {
             context.disableScissor();

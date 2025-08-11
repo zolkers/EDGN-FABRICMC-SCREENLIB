@@ -43,14 +43,23 @@ public class GridContainer extends ScrollContainer {
             if (!child.isVisible()) continue;
             if (child instanceof ScrollbarItem) continue;
 
-            child.setX(xCursor);
-            child.setY(yCursor);
-            child.setWidth(cellW);
+            int mt = child.getMarginTop();
+            int mb = child.getMarginBottom();
+            int ml = child.getMarginLeft();
+            int mr = child.getMarginRight();
+
+            int cx = xCursor + ml;
+            int cy = yCursor + mt;
+            int cw = Math.max(0, cellW - ml - mr);
+
+            child.setX(cx);
+            child.setY(cy);
+            child.setWidth(cw);
             child.updateConstraints();
             child.getInteractionBounds();
 
-            int ch = child.getCalculatedHeight();
-            if (ch > rowMaxH) rowMaxH = ch;
+            int occupiedH = mt + child.getCalculatedHeight() + mb;
+            if (occupiedH > rowMaxH) rowMaxH = occupiedH;
 
             colIndex++;
             if (colIndex < colCount) {

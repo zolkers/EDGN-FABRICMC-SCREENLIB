@@ -54,11 +54,16 @@ public class FlexContainer extends BaseContainer {
         List<UIElement> kids = getChildren();
         if (kids.isEmpty()) return;
 
-        int contentX = getCalculatedX() + getPaddingLeft();
-        int contentY = getCalculatedY() + getPaddingTop();
-        int contentW = Math.max(0, getCalculatedWidth() - getPaddingLeft() - getPaddingRight());
-        int contentH = Math.max(0, getCalculatedHeight() - getPaddingTop() - getPaddingBottom());
+        int pl = getPaddingLeft();
+        int pr = getPaddingRight();
+        int pt = getPaddingTop();
+        int pb = getPaddingBottom();
         int gap = getGap();
+
+        int contentX = getCalculatedX() + pl;
+        int contentY = getCalculatedY() + pt;
+        int contentW = Math.max(0, getCalculatedWidth() - pl - pr);
+        int contentH = Math.max(0, getCalculatedHeight() - pt - pb);
 
         boolean row = isRow();
         int maxMain = row ? contentW : contentH;
@@ -69,29 +74,51 @@ public class FlexContainer extends BaseContainer {
         double k = 1.0;
         if (uniformScaleEnabled) {
             k = computeUniformScaleFactor(lines, maxMain, maxCross, gap);
+
+            pl = scaleRound(k, pl);
+            pr = scaleRound(k, pr);
+            pt = scaleRound(k, pt);
+            pb = scaleRound(k, pb);
+            gap = scaleRound(k, gap);
+
+            contentX = getCalculatedX() + pl;
+            contentY = getCalculatedY() + pt;
+            contentW = Math.max(0, getCalculatedWidth() - pl - pr);
+            contentH = Math.max(0, getCalculatedHeight() - pt - pb);
+
+            maxMain = row ? contentW : contentH;
+            maxCross = row ? contentH : contentW;
+
+            lines = measureAndWrap(kids, maxMain, row, gap);
         }
 
         List<Line> scaledLines = uniformScaleEnabled ? scaleLinesForUniform(lines, k, row) : lines;
-        List<Integer> fittedCross = fitCrossSizes(uniformScaleEnabled ? scaledLines : lines, maxCross, gap);
+        List<Integer> fittedCross = fitCrossSizes(scaledLines, maxCross, gap);
 
         int crossCursor = wrapReverse() ? (row ? contentY + maxCross : contentX + maxCross) : (row ? contentY : contentX);
 
         for (int li = 0; li < scaledLines.size(); li++) {
             Line line = scaledLines.get(li);
             int lineCrossSize = fittedCross.get(li);
+
             List<ItemBox> metrics = uniformScaleEnabled
                     ? collectMetricsScaled(line.children(), maxMain, row, k)
                     : collectMetrics(line.children(), maxMain, row);
+
             int[] itemTotals = distributeMainSpace(metrics, maxMain, gap);
             snapFixSum(itemTotals, gap, maxMain);
             Justify justify = computeJustify(itemTotals, maxMain, gap);
+
             int mainStart = row ? contentX : contentY;
+
             if (uniformScaleEnabled) {
-                positionLineScaled(line, metrics, itemTotals, justify, mainStart, crossCursor, row, lineCrossSize, k);
+                positionLineScaled(line, metrics, itemTotals, justify, mainStart, crossCursor, row, lineCrossSize, k, maxMain);
             } else {
-                positionLineWithCrossSize(line, metrics, itemTotals, justify, mainStart, crossCursor, row, lineCrossSize);
+                positionLineWithCrossSize(line, metrics, itemTotals, justify, mainStart, crossCursor, row, lineCrossSize, maxMain);
             }
-            crossCursor = advanceCrossCursor(crossCursor, lineCrossSize);
+
+            int lineGap = (li < scaledLines.size() - 1) ? gap : 0;
+            crossCursor = advanceCrossCursor(crossCursor, lineCrossSize, lineGap);
         }
     }
 
@@ -143,6 +170,24 @@ public class FlexContainer extends BaseContainer {
         return boxes;
     }
 
+    private List<ItemBox> collectMetricsScaled(List<UIElement> children, int maxMain, boolean row, double k) {
+        List<ItemBox> boxes = new ArrayList<>(children.size());
+        for (UIElement child : children) {
+            int basis = resolveFlexBasis(child, maxMain, row);
+            int mls = row ? child.getMarginLeft() : child.getMarginTop();
+            int mle = row ? child.getMarginRight() : child.getMarginBottom();
+            int mcs = row ? child.getMarginTop() : child.getMarginLeft();
+            int mce = row ? child.getMarginBottom() : child.getMarginRight();
+            int sb = scaleRound(k, basis);
+            int sms = scaleRound(k, mls);
+            int sme = scaleRound(k, mle);
+            int smcs = scaleRound(k, mcs);
+            int smce = scaleRound(k, mce);
+            boxes.add(new ItemBox(child, sb, sb + sms + sme, sms, sme, smcs, smce));
+        }
+        return boxes;
+    }
+
     private int[] distributeMainSpace(List<ItemBox> metrics, int maxMain, int gap) {
         int used = 0;
         long totalGrow = 0L;
@@ -161,14 +206,14 @@ public class FlexContainer extends BaseContainer {
         if (remaining > 0 && totalGrow > 0) {
             for (int i = 0; i < metrics.size(); i++) {
                 UIElement n = metrics.get(i).node();
-                int grow = Math.max(0, n.getFlexGrow());
-                int delta = (int) Math.floor(remaining * (double) grow / (double) totalGrow);
+                int delta = (int) Math.floor((double) remaining * Math.max(0, n.getFlexGrow()) / (double) totalGrow);
                 totals[i] = metrics.get(i).withMargins() + delta;
             }
-        } else if (remaining < 0 && totalShrinkWeighted > 0.0) {
+        } else if (remaining < 0 && totalShrinkWeighted > 0) {
             for (int i = 0; i < metrics.size(); i++) {
+                UIElement n = metrics.get(i).node();
+                double shrink = Math.max(0, n.getComputedStyles().flexShrink);
                 ItemBox m = metrics.get(i);
-                int shrink = Math.max(0, m.node().getComputedStyles().flexShrink);
                 int delta = (int) Math.floor(remaining * (shrink * m.basis()) / totalShrinkWeighted);
                 int minAllowed = m.mStart() + m.mEnd();
                 totals[i] = Math.max(minAllowed, m.withMargins() + delta);
@@ -211,9 +256,9 @@ public class FlexContainer extends BaseContainer {
         return new Justify(leading, between);
     }
 
-    private void positionLineWithCrossSize(Line line, List<ItemBox> metrics, int[] totals, Justify justify, int mainStart, int crossCursor, boolean row, int lineCrossSize) {
+    private void positionLineWithCrossSize(Line line, List<ItemBox> metrics, int[] totals, Justify justify, int mainStart, int crossCursor, boolean row, int lineCrossSize, int maxMain) {
         int sign = isReverse() ? -1 : 1;
-        int mainCursor = isReverse() ? mainStart + getMainMax() - justify.leading() : mainStart + justify.leading();
+        int mainCursor = isReverse() ? mainStart + maxMain - justify.leading() : mainStart + justify.leading();
         int lineCrossStart = wrapReverse() ? (crossCursor - lineCrossSize) : crossCursor;
 
         for (int i = 0; i < line.children().size(); i++) {
@@ -244,8 +289,49 @@ public class FlexContainer extends BaseContainer {
         }
     }
 
-    private int advanceCrossCursor(int crossCursor, int lineCross) {
-        return wrapReverse() ? (crossCursor - lineCross) : (crossCursor + lineCross);
+    private void positionLineScaled(Line line, List<ItemBox> metrics, int[] totals, Justify justify, int mainStart, int crossCursor, boolean row, int lineCrossSize, double k, int maxMain) {
+        int sign = isReverse() ? -1 : 1;
+        int mainCursor = isReverse() ? mainStart + maxMain - justify.leading() : mainStart + justify.leading();
+        int lineCrossStart = wrapReverse() ? (crossCursor - lineCrossSize) : crossCursor;
+
+        for (int i = 0; i < line.children().size(); i++) {
+            ItemBox box = metrics.get(i);
+            int total = totals[i];
+            int childMain = Math.max(0, total - box.mStart() - box.mEnd());
+            int naturalCross = isRow() ? box.node().getHeight() : box.node().getWidth();
+            int scaledNatural = scaleRound(k, naturalCross);
+            int stretched = hasClass(StyleKey.ITEMS_STRETCH) ? Math.max(0, lineCrossSize - box.mCrossStart() - box.mCrossEnd()) : scaledNatural;
+            int childCross = enforceMinMaxCross(stretched, box.node(), isRow());
+            int crossPos;
+            if (hasClass(StyleKey.ITEMS_CENTER)) {
+                crossPos = lineCrossStart + (lineCrossSize - childCross) / 2 + box.mCrossStart();
+            } else if (hasClass(StyleKey.ITEMS_END)) {
+                crossPos = lineCrossStart + lineCrossSize - childCross - box.mCrossEnd();
+            } else {
+                crossPos = lineCrossStart + box.mCrossStart();
+            }
+            int marginForStart = startMarginForDirection(box.node(), isRow(), isReverse());
+            int itemStartPos = isReverse() ? (mainCursor - total + marginForStart) : (mainCursor + marginForStart);
+
+            if (row) {
+                box.node().setX(itemStartPos);
+                box.node().setY(crossPos);
+                box.node().setWidth(childMain);
+                box.node().setHeight(childCross);
+            } else {
+                box.node().setX(crossPos);
+                box.node().setY(itemStartPos);
+                box.node().setWidth(childCross);
+                box.node().setHeight(childMain);
+            }
+            box.node().updateConstraints();
+
+            mainCursor += sign * (total + (i + 1 < line.children().size() ? justify.between() : 0));
+        }
+    }
+
+    private int advanceCrossCursor(int crossCursor, int lineCross, int lineGap) {
+        return wrapReverse() ? (crossCursor - lineCross - lineGap) : (crossCursor + lineCross + lineGap);
     }
 
     private int computeCrossPos(int lineStart, int lineCrossSize, int childCross, ItemBox box, boolean row) {
@@ -315,12 +401,6 @@ public class FlexContainer extends BaseContainer {
         return fitted;
     }
 
-    private int getMainMax() {
-        int contentW = Math.max(0, getCalculatedWidth() - getPaddingLeft() - getPaddingRight());
-        int contentH = Math.max(0, getCalculatedHeight() - getPaddingTop() - getPaddingBottom());
-        return isRow() ? contentW : contentH;
-    }
-
     private double computeUniformScaleFactor(List<Line> lines, int maxMain, int maxCross, int gap) {
         int neededMainMax = 0;
         for (Line line : lines) {
@@ -355,24 +435,6 @@ public class FlexContainer extends BaseContainer {
         return out;
     }
 
-    private List<ItemBox> collectMetricsScaled(List<UIElement> children, int maxMain, boolean row, double k) {
-        List<ItemBox> boxes = new ArrayList<>(children.size());
-        for (UIElement child : children) {
-            int basis = resolveFlexBasis(child, maxMain, row);
-            int mls = row ? child.getMarginLeft() : child.getMarginTop();
-            int mle = row ? child.getMarginRight() : child.getMarginBottom();
-            int mcs = row ? child.getMarginTop() : child.getMarginLeft();
-            int mce = row ? child.getMarginBottom() : child.getMarginRight();
-            int sb = scaleRound(k, basis);
-            int sms = scaleRound(k, mls);
-            int sme = scaleRound(k, mle);
-            int smcs = scaleRound(k, mcs);
-            int smce = scaleRound(k, mce);
-            boxes.add(new ItemBox(child, sb, sb + sms + sme, sms, sme, smcs, smce));
-        }
-        return boxes;
-    }
-
     private int enforceMinMaxCross(int value, UIElement n, boolean row) {
         return Math.max(0, value);
     }
@@ -387,47 +449,6 @@ public class FlexContainer extends BaseContainer {
             correction -= step;
         }
         return correction;
-    }
-
-    private void positionLineScaled(Line line, List<ItemBox> metrics, int[] totals, Justify justify, int mainStart, int crossCursor, boolean row, int lineCrossSize, double k) {
-        int sign = isReverse() ? -1 : 1;
-        int mainCursor = isReverse() ? mainStart + getMainMax() - justify.leading() : mainStart + justify.leading();
-        int lineCrossStart = wrapReverse() ? (crossCursor - lineCrossSize) : crossCursor;
-
-        for (int i = 0; i < line.children().size(); i++) {
-            ItemBox box = metrics.get(i);
-            int total = totals[i];
-            int childMain = Math.max(0, total - box.mStart() - box.mEnd());
-            int naturalCross = isRow() ? box.node().getHeight() : box.node().getWidth();
-            int scaledNatural = scaleRound(k, naturalCross);
-            int stretched = hasClass(StyleKey.ITEMS_STRETCH) ? Math.max(0, lineCrossSize - box.mCrossStart() - box.mCrossEnd()) : scaledNatural;
-            int childCross = enforceMinMaxCross(stretched, box.node(), isRow());
-            int crossPos;
-            if (hasClass(StyleKey.ITEMS_CENTER)) {
-                crossPos = lineCrossStart + (lineCrossSize - childCross) / 2 + box.mCrossStart();
-            } else if (hasClass(StyleKey.ITEMS_END)) {
-                crossPos = lineCrossStart + lineCrossSize - childCross - box.mCrossEnd();
-            } else {
-                crossPos = lineCrossStart + box.mCrossStart();
-            }
-            int marginForStart = startMarginForDirection(box.node(), isRow(), isReverse());
-            int itemStartPos = isReverse() ? (mainCursor - total + marginForStart) : (mainCursor + marginForStart);
-
-            if (row) {
-                box.node().setX(itemStartPos);
-                box.node().setY(crossPos);
-                box.node().setWidth(childMain);
-                box.node().setHeight(childCross);
-            } else {
-                box.node().setX(crossPos);
-                box.node().setY(itemStartPos);
-                box.node().setWidth(childCross);
-                box.node().setHeight(childMain);
-            }
-            box.node().updateConstraints();
-
-            mainCursor += sign * (total + (i + 1 < line.children().size() ? justify.between() : 0));
-        }
     }
 
     @Override

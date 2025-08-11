@@ -78,7 +78,7 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.FLEX_ROW,
                         StyleKey.FLEX_WRAP,
                         StyleKey.ITEMS_STRETCH,
-                        StyleKey.JUSTIFY_START,
+                        StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_4,
                         StyleKey.P_4,
                         StyleKey.BG_BACKGROUND

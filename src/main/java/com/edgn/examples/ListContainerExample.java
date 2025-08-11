@@ -66,6 +66,7 @@ public class ListContainerExample extends BaseTemplate {
                 .addClass(StyleKey.P_4, StyleKey.GAP_3, StyleKey.BG_BACKGROUND);
 
         for (int i = 1; i <= 30; i++) {
+            int finalI = i;
             ButtonItem item = new ButtonItem(uiSystem, 0, 0, this.width - 24, 44)
                     .withText(new TextComponent("Item " + i))
                     .addClass(
@@ -77,7 +78,7 @@ public class ListContainerExample extends BaseTemplate {
                             StyleKey.HOVER_SCALE,
                             StyleKey.FOCUS_RING,
                             StyleKey.HOVER_BRIGHTEN
-                    );
+                    ).onClick(() -> System.out.println(finalI));
             list.addChild(item);
         }
         return list;

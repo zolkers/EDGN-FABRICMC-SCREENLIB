@@ -46,7 +46,7 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.HOVER_SCALE,
                         StyleKey.FOCUS_RING
                 );
-        toList.onClick(() -> MinecraftClient.getInstance().setScreen(new ListContainerExample(FlexContainerExample.this)));
+        toList.onClick(() -> MinecraftClient.getInstance().setScreen(new ListContainerExample(this)));
 
         ButtonItem toGrid = new ButtonItem(uiSystem, 0, 0, 160, 28)
                 .withText(new TextComponent("Grid Container"))
@@ -58,17 +58,11 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.HOVER_SCALE,
                         StyleKey.FOCUS_RING
                 );
-        toGrid.onClick(() -> MinecraftClient.getInstance().setScreen(new GridContainerExample(FlexContainerExample.this)));
+        toGrid.onClick(() -> MinecraftClient.getInstance().setScreen(new GridContainerExample(this)));
 
         header.addChild(toList);
         header.addChild(toGrid);
         return header;
-    }
-
-
-    @Override
-    protected BaseContainer createFooter() {
-        return null;
     }
 
     @Override
@@ -84,73 +78,24 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        content.addChild(button(uiSystem, "Hi", true)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "I'm a button", false)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "Might be trimmed cuz too loooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooong", true)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, ":)", false)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "I love melon", true)
-                .addClass(StyleKey.FLEX_BASIS_33)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "EDGN ?!", true)
-                .addClass(StyleKey.FLEX_BASIS_33)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "YAY", false)
-                .addClass(StyleKey.FLEX_BASIS_33)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "AWESOME !", false)
-                .addClass(StyleKey.FLEX_BASIS_50)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "Idk if it's easy to use", true)
-                .addClass(StyleKey.FLEX_BASIS_50)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "AHAHAHAHHAHAHAHAHAHAHA", false)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "YOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO", false)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-        );
-
-        content.addChild(button(uiSystem, "LEAVE THE SCREEN", true)
-                .addClass(StyleKey.FLEX_BASIS_25)
-                .addClass(StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
-                .onClick(this::close)
+        content.addChild(button(uiSystem, "FlexField example", true)
+                .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
+                .onClick(() -> MinecraftClient.getInstance().setScreen(new TextFieldExample(this)))
         );
 
         return content;
     }
 
+
+    @Override
+    protected BaseContainer createFooter() {
+        return null;
+    }
+
+
     private ButtonItem button(UIStyleSystem ui, String label, boolean scaleOnHover) {
         ButtonItem b = new ButtonItem(ui, 0, 0, 220, 48)
-                .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR).wave())
+                .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR))
                 .addClass(
                         StyleKey.PRIMARY,
                         StyleKey.TEXT_WHITE,

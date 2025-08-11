@@ -6,7 +6,6 @@ import com.edgn.ui.core.container.containers.FlexContainer;
 import com.edgn.ui.core.container.containers.GridContainer;
 import com.edgn.ui.core.item.items.ButtonItem;
 import com.edgn.ui.css.StyleKey;
-import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
 import net.minecraft.client.MinecraftClient;
@@ -60,16 +59,14 @@ public class GridContainerExample extends BaseTemplate {
 
     @Override
     protected BaseContainer createContent() {
-        UIStyleSystem ui = getUISystem();
-
-        GridContainer grid = new GridContainer(ui, 0, getHeaderHeight(), this.width, getContentHeight())
+        GridContainer grid = new GridContainer(uiSystem, 0, getHeaderHeight(), this.width, getContentHeight())
                 .setColumns(3)
                 .setScrollable(true)
                 .setScrollAxes(true, false)
                 .addClass(StyleKey.P_4, StyleKey.GAP_4, StyleKey.BG_BACKGROUND);
 
         for (int i = 1; i <= 36; i++) {
-            ButtonItem tile = new ButtonItem(ui, 0, 0, 220, 80)
+            ButtonItem tile = new ButtonItem(uiSystem, 0, 0, 220, 80)
                     .withText(new TextComponent("Card " + i))
                     .addClass(
                             StyleKey.INFO,

@@ -25,7 +25,7 @@ public class FlexContainerExample extends BaseTemplate {
 
     @Override
     protected BaseContainer createHeader() {
-        FlexContainer header = new FlexContainer(getUISystem(), 0, 0, this.width, getHeaderHeight())
+        FlexContainer header = new FlexContainer(uiSystem, 0, 0, this.width, getHeaderHeight())
                 .addClass(
                         StyleKey.FLEX_ROW,
                         StyleKey.ITEMS_CENTER,
@@ -73,7 +73,7 @@ public class FlexContainerExample extends BaseTemplate {
 
     @Override
     protected BaseContainer createContent() {
-        FlexContainer content = new FlexContainer(getUISystem(), 0, getHeaderHeight(), this.width, getContentHeight())
+        FlexContainer content = new FlexContainer(uiSystem, 0, getHeaderHeight(), this.width, getContentHeight())
                 .addClass(
                         StyleKey.FLEX_ROW,
                         StyleKey.FLEX_WRAP,

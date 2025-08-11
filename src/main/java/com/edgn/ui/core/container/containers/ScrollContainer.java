@@ -64,10 +64,10 @@ public class ScrollContainer extends BaseContainer {
 
     @Override
     protected void updateInteractionBounds() {
-        int clipX = calculatedX + getPaddingLeft();
-        int clipY = calculatedY + getPaddingTop();
-        int clipW = baseViewportWidth();
-        int clipH = baseViewportHeight();
+        int clipX = getViewportX();
+        int clipY = getViewportY();
+        int clipW = getViewportWidth();
+        int clipH = getViewportHeight();
         this.interactionBounds = new InteractionBounds(clipX, clipY, clipW, clipH);
     }
 
@@ -159,10 +159,9 @@ public class ScrollContainer extends BaseContainer {
 
         if (needV) {
             if (vbar == null) {
-                vbar = new com.edgn.ui.core.item.items.ScrollbarItem(styleSystem,
-                        0, 0, 1, 1, model, ScrollbarItem.Orientation.VERTICAL)
+                vbar = new ScrollbarItem(styleSystem, 0, 0, 1, 1, model, ScrollbarItem.Orientation.VERTICAL)
                         .setThickness(scrollbarThickness).setPadding(scrollbarPadding)
-                        .setZIndex(com.edgn.ui.layout.ZIndex.Layer.OVERLAY);
+                        .setZIndex(ZIndex.Layer.OVERLAY);
                 addChild(vbar);
             }
             int gx = baseX + baseW - gutterV();
@@ -180,8 +179,7 @@ public class ScrollContainer extends BaseContainer {
 
         if (needH) {
             if (hbar == null) {
-                hbar = new com.edgn.ui.core.item.items.ScrollbarItem(styleSystem,
-                        0, 0, 1, 1, model, com.edgn.ui.core.item.items.ScrollbarItem.Orientation.HORIZONTAL)
+                hbar = new ScrollbarItem(styleSystem, 0, 0, 1, 1, model, ScrollbarItem.Orientation.HORIZONTAL)
                         .setThickness(scrollbarThickness).setPadding(scrollbarPadding)
                         .setZIndex(ZIndex.Layer.OVERLAY);
                 addChild(hbar);
@@ -234,7 +232,7 @@ public class ScrollContainer extends BaseContainer {
             List<UIElement> children = getChildren();
             for (UIElement child : children) {
                 if (child == null || !child.isVisible()) continue;
-                boolean isScrollbar = child instanceof com.edgn.ui.core.item.items.ScrollbarItem;
+                boolean isScrollbar = child instanceof ScrollbarItem;
                 int ox = child.getX();
                 int oy = child.getY();
                 if (!isScrollbar) { child.setX(ox - scrollX); child.setY(oy - scrollY); }
@@ -259,16 +257,16 @@ public class ScrollContainer extends BaseContainer {
 
     @Override
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
-        return false;
+        return super.onMouseClick(mouseX, mouseY, button);
     }
 
     @Override
     public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        return false;
+        return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
     }
 
     @Override
     public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        return false;
+        return super.onMouseRelease(mouseX, mouseY, button);
     }
 }

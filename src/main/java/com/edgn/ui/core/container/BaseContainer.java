@@ -80,12 +80,12 @@ public abstract class BaseContainer extends UIElement implements IContainer {
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
         if (!canInteract(mouseX, mouseY)) return false;
 
-        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
-
-        for (UIElement child : sortedChildren) {
-            if (child.onMouseClick(mouseX, mouseY, button)) {
-                return true;
-            }
+        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            UIElement child = sorted.get(i);
+            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
+            if (!child.canInteract(mouseX, mouseY)) continue;
+            if (child.onMouseClick(mouseX, mouseY, button)) return true;
         }
 
         return super.onMouseClick(mouseX, mouseY, button);
@@ -93,38 +93,36 @@ public abstract class BaseContainer extends UIElement implements IContainer {
 
     @Override
     public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
-
-        for (UIElement child : sortedChildren) {
-            if (child.onMouseRelease(mouseX, mouseY, button)) {
-                return true;
-            }
+        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            UIElement child = sorted.get(i);
+            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
+            if (!child.canInteract(mouseX, mouseY)) continue;
+            if (child.onMouseRelease(mouseX, mouseY, button)) return true;
         }
         return super.onMouseRelease(mouseX, mouseY, button);
     }
 
     @Override
     public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) {
-        List<UIElement> sortedChildren = LayoutEngine.sortByInteractionPriority(children, mouseX, mouseY);
-
-        for (UIElement child : sortedChildren) {
-            if (child.onMouseScroll(mouseX, mouseY, scrollDelta)) {
-                return true;
-            }
+        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            UIElement child = sorted.get(i);
+            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
+            if (!child.canInteract(mouseX, mouseY)) continue;
+            if (child.onMouseScroll(mouseX, mouseY, scrollDelta)) return true;
         }
         return super.onMouseScroll(mouseX, mouseY, scrollDelta);
     }
 
     @Override
     public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        List<UIElement> sortedChildren = LayoutEngine.sortByRenderOrder(children);
-
-        for (int i = sortedChildren.size() - 1; i >= 0; i--) {
-            UIElement child = sortedChildren.get(i);
-            if (child.isVisible() && child.isEnabled() && child.isRendered() &&
-                    child.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) {
-                return true;
-            }
+        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            UIElement child = sorted.get(i);
+            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
+            if (!child.canInteract(mouseX, mouseY)) continue;
+            if (child.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) return true;
         }
         return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
     }
@@ -233,7 +231,6 @@ public abstract class BaseContainer extends UIElement implements IContainer {
     protected List<UIElement> getSortedChildren() {
         return LayoutEngine.sortByZIndex(children);
     }
-
 
     public BaseContainer bringChildToFront(UIElement child) {
         if (children.contains(child)) {

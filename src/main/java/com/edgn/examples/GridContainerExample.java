@@ -74,8 +74,8 @@ public class GridContainerExample extends BaseTemplate {
                             StyleKey.ROUNDED_LG,
                             StyleKey.P_3,
                             StyleKey.SHADOW_MD,
-                            StyleKey.HOVER_SCALE,
-                            StyleKey.FOCUS_RING
+                            StyleKey.FOCUS_RING,
+                            StyleKey.HOVER_BRIGHTEN
                     );
             grid.addChild(tile);
         }

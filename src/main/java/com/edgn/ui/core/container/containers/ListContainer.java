@@ -1,6 +1,7 @@
 package com.edgn.ui.core.container.containers;
 
 import com.edgn.ui.core.UIElement;
+import com.edgn.ui.core.item.items.ScrollbarItem;
 import com.edgn.ui.css.UIStyleSystem;
 
 import java.util.List;
@@ -37,22 +38,24 @@ public class ListContainer extends ScrollContainer {
             int vw = getViewportWidth();
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
-                if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
+                if (child instanceof ScrollbarItem) continue;
                 child.setX(xCursor);
                 child.setY(yCursor);
                 child.setWidth(vw);
                 child.updateConstraints();
+                child.getInteractionBounds();
                 yCursor += child.getCalculatedHeight() + gap;
             }
         } else {
             int vh = getViewportHeight();
             for (UIElement child : kids) {
                 if (!child.isVisible()) continue;
-                if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
+                if (child instanceof ScrollbarItem) continue;
                 child.setX(xCursor);
                 child.setY(yCursor);
                 child.setHeight(vh);
                 child.updateConstraints();
+                child.getInteractionBounds();
                 xCursor += child.getCalculatedWidth() + gap;
             }
         }

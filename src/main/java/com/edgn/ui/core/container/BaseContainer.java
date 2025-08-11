@@ -84,8 +84,14 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         for (int i = sorted.size() - 1; i >= 0; i--) {
             UIElement child = sorted.get(i);
             if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-            if (!child.canInteract(mouseX, mouseY)) continue;
-            if (child.onMouseClick(mouseX, mouseY, button)) return true;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double mx = mouseX - offX;
+            double my = mouseY - offY;
+
+            if (!child.canInteract(mx, my)) continue;
+            if (child.onMouseClick(mx, my, button)) return true;
         }
 
         return super.onMouseClick(mouseX, mouseY, button);
@@ -97,8 +103,14 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         for (int i = sorted.size() - 1; i >= 0; i--) {
             UIElement child = sorted.get(i);
             if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-            if (!child.canInteract(mouseX, mouseY)) continue;
-            if (child.onMouseRelease(mouseX, mouseY, button)) return true;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double mx = mouseX - offX;
+            double my = mouseY - offY;
+
+            if (!child.canInteract(mx, my)) continue;
+            if (child.onMouseRelease(mx, my, button)) return true;
         }
         return super.onMouseRelease(mouseX, mouseY, button);
     }
@@ -109,8 +121,14 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         for (int i = sorted.size() - 1; i >= 0; i--) {
             UIElement child = sorted.get(i);
             if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-            if (!child.canInteract(mouseX, mouseY)) continue;
-            if (child.onMouseScroll(mouseX, mouseY, scrollDelta)) return true;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double mx = mouseX - offX;
+            double my = mouseY - offY;
+
+            if (!child.canInteract(mx, my)) continue;
+            if (child.onMouseScroll(mx, my, scrollDelta)) return true;
         }
         return super.onMouseScroll(mouseX, mouseY, scrollDelta);
     }
@@ -121,8 +139,14 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         for (int i = sorted.size() - 1; i >= 0; i--) {
             UIElement child = sorted.get(i);
             if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-            if (!child.canInteract(mouseX, mouseY)) continue;
-            if (child.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) return true;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double mx = mouseX - offX;
+            double my = mouseY - offY;
+
+            if (!child.canInteract(mx, my)) continue;
+            if (child.onMouseDrag(mx, my, button, deltaX, deltaY)) return true;
         }
         return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
     }
@@ -131,9 +155,14 @@ public abstract class BaseContainer extends UIElement implements IContainer {
     public void onMouseMove(double mouseX, double mouseY) {
         super.onMouseMove(mouseX, mouseY);
         for (UIElement child : children) {
-            if (child.isVisible() && child.isRendered()) {
-                child.onMouseMove(mouseX, mouseY);
-            }
+            if (!child.isVisible() || !child.isRendered()) continue;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double mx = mouseX - offX;
+            double my = mouseY - offY;
+
+            child.onMouseMove(mx, my);
         }
     }
 

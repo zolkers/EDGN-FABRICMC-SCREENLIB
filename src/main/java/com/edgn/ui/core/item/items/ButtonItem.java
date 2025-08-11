@@ -67,11 +67,7 @@ public class ButtonItem extends BaseItem {
         return this;
     }
 
-    public ButtonItem textColor(int color) {
-        if (textComponent != null) textComponent.color(color);
-        return this;
-    }
-
+    public ButtonItem textColor(int color) { if (textComponent != null) textComponent.color(color); return this; }
     public ButtonItem textBold() { if (textComponent != null) textComponent.bold(); return this; }
     public ButtonItem textItalic() { if (textComponent != null) textComponent.italic(); return this; }
     public ButtonItem textShadow() { if (textComponent != null) textComponent.shadow(); return this; }
@@ -97,22 +93,31 @@ public class ButtonItem extends BaseItem {
         return this;
     }
 
-
     @Override
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
-        if (enabled && contains(mouseX, mouseY)) {
-            setState(ItemState.PRESSED);
-            return super.onMouseClick(mouseX, mouseY, button);
-        }
-        return false;
+        if (!enabled || !canInteract(mouseX, mouseY)) return false;
+        setState(ItemState.PRESSED);
+        return super.onMouseClick(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean onMouseRelease(double mouseX, double mouseY, int button) {
+        if (!enabled) return false;
+        boolean inside = canInteract(mouseX, mouseY);
+        setState(inside ? ItemState.HOVERED : ItemState.NORMAL);
+        return inside;
     }
 
     @Override
     public void onMouseEnter() {
-        super.onMouseEnter();
-        if (textComponent != null && !textComponent.getActiveAnimations().isEmpty()) {
-            textComponent.startAnimation();
-        }
+        if (!enabled) return;
+        setState(ItemState.HOVERED);
+    }
+
+    @Override
+    public void onMouseLeave() {
+        if (!enabled) return;
+        setState(ItemState.NORMAL);
     }
 
     @Override
@@ -120,40 +125,73 @@ public class ButtonItem extends BaseItem {
         if (!visible) return;
 
         updateConstraints();
-        final int cx = getCalculatedX();
-        final int cy = getCalculatedY();
-        final int cw = getCalculatedWidth();
-        final int ch = getCalculatedHeight();
+        int cx = getCalculatedX();
+        int cy = getCalculatedY();
+        int cw = getCalculatedWidth();
+        int ch = getCalculatedHeight();
 
-        final int bgColor = getStateColor();
-        final int borderRadius = getBorderRadius();
-        final Shadow shadow = getShadow();
-        final float anim = getAnimationProgress();
+        int baseBg = getBgColor();
+        if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.PRIMARY);
 
-        if (state == ItemState.HOVERED && hasClass(StyleKey.HOVER_SCALE)) {
-            float scale = 1.0f + (0.05f * anim);
+        int bg = backgroundForState(baseBg);
+        int radius = getBorderRadius();
+        Shadow shadow = getShadow();
+
+        float scale = (hasClass(StyleKey.HOVER_SCALE) && getState() == ItemState.HOVERED)
+                ? getAnimatedScale()
+                : 1.0f;
+
+        if (scale != 1.0f) {
             int sw = Math.max(0, Math.round(cw * scale));
             int sh = Math.max(0, Math.round(ch * scale));
             int ox = (sw - cw) / 2;
             int oy = (sh - ch) / 2;
-
-            if (shadow != null) {
-                DrawContextUtils.drawShadow(context, cx - ox, cy - oy, sw, sh, 3, 3, shadow.color);
-            }
-            DrawContextUtils.drawRoundedRect(context, cx - ox, cy - oy, sw, sh, borderRadius, bgColor);
+            if (shadow != null) DrawContextUtils.drawShadow(context, cx - ox, cy - oy, sw, sh, 3, 3, shadow.color);
+            DrawContextUtils.drawRoundedRect(context, cx - ox, cy - oy, sw, sh, radius, bg);
         } else {
-            if (shadow != null) {
-                DrawContextUtils.drawShadow(context, cx, cy, cw, ch, 2, 2, shadow.color);
-            }
-            DrawContextUtils.drawRoundedRect(context, cx, cy, cw, ch, borderRadius, bgColor);
+            if (shadow != null) DrawContextUtils.drawShadow(context, cx, cy, cw, ch, 2, 2, shadow.color);
+            DrawContextUtils.drawRoundedRect(context, cx, cy, cw, ch, radius, bg);
         }
 
-        if (focused && hasClass(StyleKey.FOCUS_RING)) {
+        if (isFocused() && hasClass(StyleKey.FOCUS_RING)) {
             int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
-            DrawContextUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, borderRadius + 2, focusColor, 2);
+            DrawContextUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, radius + 2, focusColor, 2);
         }
 
         renderText(context, cx, cy, cw, ch);
+    }
+
+    private int backgroundForState(int base) {
+        if (getState() == ItemState.PRESSED) {
+            return darken(base);
+        }
+        if (getState() == ItemState.HOVERED) {
+            float f = hasClass(StyleKey.HOVER_BRIGHTEN) ? 0.20f : 0.08f;
+            return brighten(base, f);
+        }
+        return base;
+    }
+
+    private int brighten(int color, float ratio) {
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >>> 16) & 0xFF;
+        int g = (color >>> 8) & 0xFF;
+        int b = color & 0xFF;
+        r = Math.min(255, Math.round(r + (255 - r) * ratio));
+        g = Math.min(255, Math.round(g + (255 - g) * ratio));
+        b = Math.min(255, Math.round(b + (255 - b) * ratio));
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private int darken(int color) {
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >>> 16) & 0xFF;
+        int g = (color >>> 8) & 0xFF;
+        int b = color & 0xFF;
+        r = Math.max(0, Math.round(r * (1.0f - 0.16f)));
+        g = Math.max(0, Math.round(g * (1.0f - 0.16f)));
+        b = Math.max(0, Math.round(b * (1.0f - 0.16f)));
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
     private void renderText(DrawContext context, int cx, int cy, int cw, int ch) {
@@ -168,29 +206,8 @@ public class ButtonItem extends BaseItem {
             textComponent.color(getComputedStyles().textColor);
         }
 
-        context.enableScissor(contentX, contentY, contentX + contentW, contentY + contentH);
-        try {
-            textComponent.render(context, contentX, contentY, contentW, contentH);
-        } finally {
-            context.disableScissor();
-        }
+        textComponent.render(context, contentX, contentY, contentW, contentH);
     }
-
-    public void startTextAnimation() { if (textComponent != null) textComponent.startAnimation(); }
-    public void stopTextAnimation() { if (textComponent != null) textComponent.stopAnimation(); }
-
-    public ButtonItem withFancyText() { if (textComponent != null) textComponent.rainbow().glow().pulse(); return this; }
-    public ButtonItem withGlowingText() { if (textComponent != null) textComponent.glow().shadow(); return this; }
-    public ButtonItem withAnimatedText() { if (textComponent != null) textComponent.wave().pulse(); return this; }
-
-    public ButtonItem asPrimaryButton() { return addClass(StyleKey.PRIMARY, StyleKey.HOVER_SCALE, StyleKey.SHADOW_SM); }
-    public ButtonItem asSecondaryButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.SECONDARY, StyleKey.HOVER_BRIGHTEN); }
-    public ButtonItem asDangerButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.DANGER, StyleKey.HOVER_SCALE); }
-    public ButtonItem asSuccessButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.SUCCESS, StyleKey.HOVER_SCALE); }
-    public ButtonItem asWarningButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.WARNING, StyleKey.HOVER_SCALE); }
-    public ButtonItem asInfoButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.INFO, StyleKey.HOVER_BRIGHTEN); }
-    public ButtonItem asGhostButton() { return removeClass(StyleKey.PRIMARY).addClass(StyleKey.BG_OPACITY_0, StyleKey.HOVER_BRIGHTEN); }
-    public ButtonItem asFancyButton() { return addClass(StyleKey.HOVER_SCALE, StyleKey.SHADOW_LG); }
 
     @Override public ButtonItem addClass(StyleKey... keys) { super.addClass(keys); return this; }
     @Override public ButtonItem removeClass(StyleKey key) { super.removeClass(key); return this; }

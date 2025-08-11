@@ -75,7 +75,8 @@ public class ListContainerExample extends BaseTemplate {
                             StyleKey.P_3,
                             StyleKey.SHADOW_SM,
                             StyleKey.HOVER_SCALE,
-                            StyleKey.FOCUS_RING
+                            StyleKey.FOCUS_RING,
+                            StyleKey.HOVER_BRIGHTEN
                     );
             list.addChild(item);
         }

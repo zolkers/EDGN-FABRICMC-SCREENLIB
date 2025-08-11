@@ -156,7 +156,8 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_LG,
                         StyleKey.P_3,
-                        StyleKey.SHADOW_MD
+                        StyleKey.SHADOW_MD,
+                        StyleKey.HOVER_BRIGHTEN
                 );
 
         if (scaleOnHover) b.addClass(StyleKey.HOVER_SCALE, StyleKey.BG_SURFACE, StyleKey.FOCUS_RING);

@@ -1,6 +1,7 @@
 package com.edgn.ui.core.container.containers;
 
 import com.edgn.ui.core.UIElement;
+import com.edgn.ui.core.item.items.ScrollbarItem;
 import com.edgn.ui.css.UIStyleSystem;
 
 import java.util.List;
@@ -40,12 +41,13 @@ public class GridContainer extends ScrollContainer {
 
         for (UIElement child : kids) {
             if (!child.isVisible()) continue;
-            if (child instanceof com.edgn.ui.core.item.items.ScrollbarItem) continue;
+            if (child instanceof ScrollbarItem) continue;
 
             child.setX(xCursor);
             child.setY(yCursor);
             child.setWidth(cellW);
             child.updateConstraints();
+            child.getInteractionBounds();
 
             int ch = child.getCalculatedHeight();
             if (ch > rowMaxH) rowMaxH = ch;

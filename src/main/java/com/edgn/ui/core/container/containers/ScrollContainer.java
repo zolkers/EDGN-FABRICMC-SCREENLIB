@@ -62,6 +62,7 @@ public class ScrollContainer extends BaseContainer {
     public boolean isVerticalScrollEnabled() { return verticalScroll; }
     public boolean isHorizontalScrollEnabled() { return horizontalScroll; }
 
+    @Override
     protected void updateInteractionBounds() {
         this.interactionBounds = new InteractionBounds(
                 getViewportX(), getViewportY(), getViewportWidth(), getViewportHeight()
@@ -176,11 +177,10 @@ public class ScrollContainer extends BaseContainer {
                 addChild(vbar);
             }
             int gx = baseX + baseW - gutterV();
-            int gy = baseY;
             int gw = gutterV();
             int gh = baseH - reserveBottom;
             vbar.setX(gx);
-            vbar.setY(gy);
+            vbar.setY(baseY);
             vbar.setWidth(gw);
             vbar.setHeight(Math.max(0, gh));
         } else if (vbar != null) {
@@ -218,37 +218,37 @@ public class ScrollContainer extends BaseContainer {
         }
         markAsRendered();
         updateConstraints();
-        updateInteractionBounds();
 
-        int clipX = calculatedX + getPaddingLeft();
-        int clipY = calculatedY + getPaddingTop();
-        int clipW = baseViewportWidth();
-        int clipH = baseViewportHeight();
+        layoutChildren();
+        computeContentSize();
+        clampScroll();
 
-        context.enableScissor(clipX, clipY, clipX + clipW, clipY + clipH);
-        try {
+        boolean changed = updateReservesOnce();
+        if (changed) {
             layoutChildren();
             computeContentSize();
             clampScroll();
+        }
 
-            boolean changed = updateReservesOnce();
-            if (changed) {
-                layoutChildren();
-                computeContentSize();
-                clampScroll();
-            }
+        ensureScrollbars();
+        updateInteractionBounds();
 
-            ensureScrollbars();
-
+        InteractionBounds bounds = getInteractionBounds();
+        context.enableScissor(bounds.minX, bounds.minY, bounds.maxX, bounds.maxY);
+        try {
             List<UIElement> children = getChildren();
             for (UIElement child : children) {
                 if (child == null || !child.isVisible()) continue;
                 boolean isScrollbar = child instanceof ScrollbarItem;
-                int ox = child.getX();
-                int oy = child.getY();
-                if (!isScrollbar) { child.setX(ox - scrollX); child.setY(oy - scrollY); }
-                child.renderElement(context);
-                if (!isScrollbar) { child.setX(ox); child.setY(oy); }
+
+                if (!isScrollbar) {
+                    context.getMatrices().push();
+                    context.getMatrices().translate((float) -scrollX, (float) -scrollY, 0.0f);
+                    child.renderElement(context);
+                    context.getMatrices().pop();
+                } else {
+                    child.renderElement(context);
+                }
             }
         } finally {
             context.disableScissor();

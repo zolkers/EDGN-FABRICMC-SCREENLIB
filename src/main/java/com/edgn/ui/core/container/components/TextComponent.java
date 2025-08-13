@@ -1,5 +1,6 @@
 package com.edgn.ui.core.container.components;
 
+import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -34,7 +35,7 @@ public class TextComponent implements Component {
 
     private EffectType effectType = EffectType.SOLID;
     private EffectMode effectMode = EffectMode.PULSE;
-    private int startColor = 0xFFFFFFFF;
+    private int startColor = ColorUtils.NamedColor.WHITE.toInt();
     private int endColor = 0xFF000000;
     private float effectSpeed = 1.0f;
 
@@ -385,17 +386,7 @@ public class TextComponent implements Component {
     }
 
     //boring getters and setters, which is why they are coded in one line (thx LLM for doing this boring job instead of me)
-    public TextComponent setOverflowMode(TextOverflowMode mode) { this.overflowMode = mode; return this; }
-    public TextComponent setMaxWidth(int maxWidth) { this.maxWidth = maxWidth; return this; }
-    public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
-    public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
-    public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
-    public TextComponent setMinScale(float minScale) { this.minScale = Math.max(0.1f, Math.min(1.0f, minScale)); return this; }
-    public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
-    public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
-    public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }
-    public TextComponent autoScale() { return setOverflowMode(TextOverflowMode.SCALE); }
-    public TextComponent autoScale(float minScale) { return setOverflowMode(TextOverflowMode.SCALE).setMinScale(minScale); }
+
     public String getText() { return text; }
     public int getBaseColor() { return startColor; }
     public TextAlign getTextAlign() { return textAlign; }
@@ -413,6 +404,18 @@ public class TextComponent implements Component {
     public void startAnimation() { this.animationEnabled = true; this.animationStartTime = System.currentTimeMillis(); if (activeAnimations.contains(AnimationType.TYPEWRITER)) { this.typewriterCharCount = 0; this.lastTypewriterUpdate = System.currentTimeMillis(); } }
     public void stopAnimation() { this.animationEnabled = false; }
     public void resetAnimation() { startAnimation(); }
+    public int getColor() {return effectType == EffectType.SOLID ? startColor : getCurrentColor(0);}
+    public TextComponent setOverflowMode(TextOverflowMode mode) { this.overflowMode = mode; return this; }
+    public TextComponent setMaxWidth(int maxWidth) { this.maxWidth = maxWidth; return this; }
+    public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
+    public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
+    public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
+    public TextComponent setMinScale(float minScale) { this.minScale = Math.max(0.1f, Math.min(1.0f, minScale)); return this; }
+    public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
+    public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
+    public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }
+    public TextComponent autoScale() { return setOverflowMode(TextOverflowMode.SCALE); }
+    public TextComponent autoScale(float minScale) { return setOverflowMode(TextOverflowMode.SCALE).setMinScale(minScale); }
     public TextComponent color(int color) { this.effectType = EffectType.SOLID; this.startColor = color; return this; }
     public TextComponent gradient(int startColor, int endColor, EffectMode mode, float speed) { this.effectType = EffectType.GRADIENT; this.startColor = startColor; this.endColor = endColor; this.effectMode = mode; this.effectSpeed = speed; return this; }
     public TextComponent gradient(int startColor, int endColor, EffectMode mode) { return gradient(startColor, endColor, mode, 1.0f); }

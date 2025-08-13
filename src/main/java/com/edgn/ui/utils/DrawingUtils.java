@@ -18,25 +18,16 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 /**
- * Utility class providing convenience drawing helpers for Minecraft's {@link DrawContext}.
- * <p>
- * This class focuses on fast, UI-friendly primitives (rectangles, rounded rectangles,
- * borders, gradients, text helpers, basic shapes) that play nicely with immediate-mode
- * rendering. Most methods are thin wrappers around {@link DrawContext#fill} or
- * simple buffer-building with the standard shader programs.
- * <p>
- * All colors are ARGB (alpha in the high byte).
- *
+ * Utility class providing convenience drawing helpers.
  * <p><b>Notes</b></p>
  * <ul>
  *   <li>Rounded corners are approximated with fills for performance. (might change later) </li>
- *   <li>Clipping (scissor) helpers include a small stack to support nested clipping regions.</li>
  *   <li>Algorithms for lines/circles use integer math (Bresenham) to avoid allocations.</li>
  * </ul>
  *
  * @author EDGN
  */
-public class DrawContextUtils {
+public class DrawingUtils {
 
 
     /** Thread-local stack of active clipping rectangles for push/pop semantics. */

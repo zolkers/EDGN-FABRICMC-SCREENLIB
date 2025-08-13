@@ -1,11 +1,13 @@
 package com.edgn.examples;
 
 import com.edgn.ui.core.container.BaseContainer;
+import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.container.containers.FlexContainer;
-import com.edgn.ui.core.item.items.TextFieldWidget;
+import com.edgn.ui.core.item.items.TextFieldItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
+import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
@@ -37,8 +39,9 @@ public class TextFieldExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        TextFieldWidget field = new TextFieldWidget(uiSystem, 0, 0, 160, 28)
-                .withPlaceholder("Test")
+        TextFieldItem field = new TextFieldItem(uiSystem, 0, 0, 160, 28)
+                .withPlaceholder(new TextComponent("Test").rainbow())
+                .textColor(ColorUtils.NamedColor.AQUAMARINE.toInt())
                 .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1);
 
         return content.addChild(field);

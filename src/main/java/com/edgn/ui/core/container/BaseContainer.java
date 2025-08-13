@@ -5,7 +5,7 @@ import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.rules.Shadow;
 import com.edgn.ui.layout.LayoutEngine;
-import com.edgn.ui.utils.DrawContextUtils;
+import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.ArrayList;
@@ -242,11 +242,11 @@ public abstract class BaseContainer extends UIElement implements IContainer {
             Shadow shadow = getShadow();
 
             if (shadow != null) {
-                DrawContextUtils.drawShadow(context, getCalculatedX(), getCalculatedY(),
+                DrawingUtils.drawShadow(context, getCalculatedX(), getCalculatedY(),
                         getCalculatedWidth(), getCalculatedHeight(), 2, 2, shadow.color);
             }
 
-            DrawContextUtils.drawRoundedRect(context, getCalculatedX(), getCalculatedY(),
+            DrawingUtils.drawRoundedRect(context, getCalculatedX(), getCalculatedY(),
                     getCalculatedWidth(), getCalculatedHeight(), borderRadius, bgColor);
         }
     }

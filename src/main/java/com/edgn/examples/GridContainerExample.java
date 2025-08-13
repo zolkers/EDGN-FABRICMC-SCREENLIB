@@ -60,9 +60,9 @@ public class GridContainerExample extends BaseTemplate {
     @Override
     protected BaseContainer createContent() {
         GridContainer grid = new GridContainer(uiSystem, 0, getHeaderHeight(), this.width, getContentHeight())
-                .setColumns(3)
+                .setColumns(10)
                 .setScrollable(true)
-                .setScrollAxes(true, false)
+                .setScrollAxes(true, true)
                 .addClass(StyleKey.P_4, StyleKey.GAP_4, StyleKey.BG_BACKGROUND);
 
         for (int i = 1; i <= 36; i++) {

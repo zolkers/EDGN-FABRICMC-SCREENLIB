@@ -15,7 +15,7 @@ import net.minecraft.text.Text;
 public class GridContainerExample extends BaseTemplate {
 
     public GridContainerExample(Screen prev) {
-        super(Text.literal("Grid Container"), prev);
+        super(Text.literal("GridContainerExample"), prev);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class GridContainerExample extends BaseTemplate {
                 .setScrollAxes(true, true)
                 .addClass(StyleKey.P_4, StyleKey.GAP_4, StyleKey.BG_BACKGROUND);
 
-        for (int i = 1; i <= 36; i++) {
+        for (int i = 1; i <= 300; i++) {
             ButtonItem tile = new ButtonItem(uiSystem, 0, 0, 220, 80)
                     .withText(new TextComponent("Card " + i))
                     .addClass(

@@ -15,7 +15,7 @@ import net.minecraft.text.Text;
 public class ListContainerExample extends BaseTemplate {
 
     public ListContainerExample(Screen prev) {
-        super(Text.literal("List Container"), prev);
+        super(Text.literal("ListContainerExample"), prev);
     }
 
     @Override

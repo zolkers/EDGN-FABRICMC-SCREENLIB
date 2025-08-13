@@ -1,6 +1,9 @@
 package com.edgn.ui.template;
 
 import com.edgn.EdgnScreenLib;
+import com.edgn.exceptions.ScreenCrashException;
+import com.edgn.exceptions.safe.Crash;
+import com.edgn.exceptions.safe.Safe;
 import com.edgn.mixin.accessors.ScreenAccessor;
 import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.css.UIStyleSystem;
@@ -79,9 +82,14 @@ public abstract class BaseTemplate extends EventTemplate {
 
     @Override
     protected final void onInit() {
-        this.updateScreenValues();
-        this.buildUI();
-        this.initialise();
+        String s = getClass().getSimpleName();
+        try {
+            Safe.run(s, ScreenCrashException.Phase.INIT, this::updateScreenValues);
+            Safe.run(s, ScreenCrashException.Phase.INIT, this::buildUI);
+            Safe.run(s, ScreenCrashException.Phase.INIT, this::initialise);
+        } catch (ScreenCrashException e) {
+            Crash.handle(this, e, this::close);
+        }
     }
 
     @Override
@@ -91,15 +99,25 @@ public abstract class BaseTemplate extends EventTemplate {
 
     @Override
     public final void onTick() {
-        this.updateScreenValues();
-        this.tickEvent();
+        String s = getClass().getSimpleName();
+        try {
+            Safe.run(s, ScreenCrashException.Phase.TICK, this::updateScreenValues);
+            Safe.run(s, ScreenCrashException.Phase.TICK, this::tickEvent);
+        } catch (ScreenCrashException e) {
+            Crash.handle(this, e, this::close);
+        }
     }
 
     @Override
-    public final void onResize(MinecraftClient client, int width, int height) {
-        this.updateScreenValues();
-        this.updateLayout();
-        this.resizeEvent();
+    public final void onResize(net.minecraft.client.MinecraftClient client, int width, int height) {
+        String s = getClass().getSimpleName();
+        try {
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, this::updateScreenValues);
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, this::updateLayout);
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, this::resizeEvent);
+        } catch (ScreenCrashException e) {
+            Crash.handle(this, e, this::close);
+        }
     }
 
     protected void buildUI() {
@@ -176,18 +194,22 @@ public abstract class BaseTemplate extends EventTemplate {
 
     @Override
     public final void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        this.updateScreenValues();
-
-        renderBackground(context, mouseX, mouseY, delta);
-
-        renderHeader(context);
-        renderContent(context);
-        renderFooter(context);
-
-        for (Drawable drawable : ((ScreenAccessor) this).getDrawables()) {
-            if(drawable != null) {
-                drawable.render(context, mouseX, mouseY, delta);
-            }
+        String s = getClass().getSimpleName();
+        try {
+            Safe.run(s, ScreenCrashException.Phase.RENDER, this::updateScreenValues);
+            Safe.run(s, ScreenCrashException.Phase.RENDER, () -> renderBackground(context, mouseX, mouseY, delta));
+            Safe.run(s, ScreenCrashException.Phase.RENDER, () -> renderHeader(context));
+            Safe.run(s, ScreenCrashException.Phase.RENDER, () -> renderContent(context));
+            Safe.run(s, ScreenCrashException.Phase.RENDER, () -> renderFooter(context));
+            Safe.run(s, ScreenCrashException.Phase.RENDER, () -> {
+                for (Drawable drawable : ((ScreenAccessor) this).getDrawables()) {
+                    if(drawable != null) {
+                        drawable.render(context, mouseX, mouseY, delta);
+                    }
+                }
+            });
+        } catch (ScreenCrashException e) {
+            Crash.handle(this, e, this::close);
         }
     }
 

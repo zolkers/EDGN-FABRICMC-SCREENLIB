@@ -15,7 +15,7 @@ import net.minecraft.text.Text;
 public class FlexContainerExample extends BaseTemplate {
 
     public FlexContainerExample(Screen prev) {
-        super(Text.literal("Example Screen"), prev);
+        super(Text.literal("FlexContainerExample"), prev);
     }
 
     @Override

@@ -14,7 +14,7 @@ import net.minecraft.text.Text;
 
 public class TextFieldExample extends BaseTemplate {
     protected TextFieldExample(Screen prevScreen) {
-        super(Text.literal("TextField example"), prevScreen);
+        super(Text.literal("TextFieldExample"), prevScreen);
     }
 
     @Override

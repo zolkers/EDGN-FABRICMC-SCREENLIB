@@ -54,7 +54,8 @@ public abstract class EventTemplate extends Screen {
     public final void removed() {
         String s = getClass().getSimpleName();
         try {
-            Safe.run(s, ScreenCrashException.Phase.CLOSE, () -> uiSystem.getEventManager().cleanup());
+            uiSystem.getEventManager().resetAllElements();
+
             Safe.run(s, ScreenCrashException.Phase.CLOSE, this::onRemove);
             Safe.run(s, ScreenCrashException.Phase.CLOSE, super::removed);
         } catch (ScreenCrashException e) {

@@ -11,7 +11,7 @@ import net.minecraft.client.gui.DrawContext;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings({"unused", "unchecked"})
+@SuppressWarnings({"unchecked"})
 public abstract class BaseContainer extends UIElement implements IContainer {
     protected final List<UIElement> children = new ArrayList<>();
     private UIElement capturedElement = null;
@@ -249,6 +249,38 @@ public abstract class BaseContainer extends UIElement implements IContainer {
             DrawingUtils.drawRoundedRect(context, getCalculatedX(), getCalculatedY(),
                     getCalculatedWidth(), getCalculatedHeight(), borderRadius, bgColor);
         }
+    }
+
+    private boolean containsInOwnInteractionBounds(double worldX, double worldY) {
+        InteractionBounds b = getInteractionBounds();
+        if (!b.isValid()) return true;
+        return worldX >= b.minX && worldX < b.maxX && worldY >= b.minY && worldY < b.maxY;
+    }
+
+    private UIElement pickTopChildAt(double worldX, double worldY) {
+        if (!isVisible() || !isRendered()) return null;
+        if (!containsInOwnInteractionBounds(worldX, worldY)) return null;
+
+        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
+        for (int i = sorted.size() - 1; i >= 0; i--) {
+            UIElement child = sorted.get(i);
+            if (child == null || !child.isVisible() || !child.isRendered()) continue;
+
+            int offX = getChildInteractionOffsetX(child);
+            int offY = getChildInteractionOffsetY(child);
+            double localX = worldX - offX;
+            double localY = worldY - offY;
+
+            if (child instanceof BaseContainer bc) {
+                UIElement deep = bc.pickTopChildAt(localX, localY);
+                if (deep != null) return deep;
+            }
+
+            if (child.canInteract(localX, localY)) {
+                return child;
+            }
+        }
+        return this.canInteract(worldX, worldY) ? this : null;
     }
 
     protected LayoutEngine.LayoutBox getContentArea() {

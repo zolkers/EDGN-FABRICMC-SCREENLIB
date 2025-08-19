@@ -10,22 +10,65 @@ import java.util.stream.Collectors;
 
 public final class UIEventManager {
     private final Set<UIElement> elements = new HashSet<>();
+
     private UIElement focusedElement = null;
     private UIElement hoveredElement = null;
+
     private long lastInteractionTime = 0;
 
+    private double lastMouseX = Double.NaN;
+    private double lastMouseY = Double.NaN;
+
+
     public void registerElement(UIElement element) {
-        elements.add(element);
+        if (element != null) {
+            elements.add(element);
+        }
     }
 
     public void unregisterElement(UIElement element) {
+        if (element == null) return;
+
         elements.remove(element);
-        if (focusedElement == element) focusedElement = null;
-        if (hoveredElement == element) hoveredElement = null;
+
+        if (focusedElement == element) {
+            focusedElement.onFocusLost();
+            focusedElement = null;
+        }
+
+        if (hoveredElement == element) {
+            hoveredElement.onMouseLeave();
+            hoveredElement = null;
+        }
+    }
+
+    public void cleanup() {
+        if (focusedElement != null) {
+            focusedElement.onFocusLost();
+            focusedElement = null;
+        }
+        if (hoveredElement != null) {
+            hoveredElement.onMouseLeave();
+            hoveredElement = null;
+        }
+        elements.clear();
+        lastInteractionTime = 0;
+        lastMouseX = Double.NaN;
+        lastMouseY = Double.NaN;
     }
 
     private List<UIElement> getSortedInteractableElements(double mouseX, double mouseY) {
         return LayoutEngine.sortByInteractionPriority(new ArrayList<>(elements), mouseX, mouseY);
+    }
+
+    private UIElement pickTopElementAt(double mouseX, double mouseY) {
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        for (UIElement el : sorted) {
+            if (canElementInteractAt(el, mouseX, mouseY)) {
+                return el;
+            }
+        }
+        return null;
     }
 
     private List<UIElement> getAllVisibleElements() {
@@ -36,16 +79,50 @@ public final class UIEventManager {
                 .collect(Collectors.toList());
     }
 
-    private List<UIElement> getElementsInLayer(ZIndex.Layer layer) {
+    public List<UIElement> getElementsInLayer(ZIndex.Layer layer) {
         return LayoutEngine.filterByLayer(new ArrayList<>(elements), layer);
+    }
+
+    private void updateHoverUnderMouse() {
+        UIElement newHover = pickTopElementAt(lastMouseX, lastMouseY);
+
+        if (hoveredElement == newHover) return;
+
+        if (hoveredElement != null) {
+            hoveredElement.onMouseLeave();
+        }
+        hoveredElement = newHover;
+        if (hoveredElement != null) {
+            hoveredElement.onMouseEnter();
+        }
+    }
+
+    public void refreshHover(double mouseX, double mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+        updateHoverUnderMouse();
+    }
+
+
+    public void onMouseMove(double mouseX, double mouseY) {
+        lastMouseX = mouseX;
+        lastMouseY = mouseY;
+
+        updateHoverUnderMouse();
+
+        for (UIElement element : elements) {
+            if (element.isVisible() && element.isRendered()) {
+                element.onMouseMove(mouseX, mouseY);
+            }
+        }
     }
 
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
         lastInteractionTime = System.currentTimeMillis();
 
-        List<UIElement> sortedElements = getSortedInteractableElements(mouseX, mouseY);
-
-        for (UIElement element : sortedElements) {
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        for (UIElement element : sorted) {
+            if (!canElementInteractAt(element, mouseX, mouseY)) continue;
             if (element.onMouseClick(mouseX, mouseY, button)) {
                 setFocus(element);
                 return true;
@@ -57,9 +134,9 @@ public final class UIEventManager {
     }
 
     public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        List<UIElement> sortedElements = getSortedInteractableElements(mouseX, mouseY);
-
-        for (UIElement element : sortedElements) {
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        for (UIElement element : sorted) {
+            if (!canElementInteractAt(element, mouseX, mouseY)) continue;
             if (element.onMouseRelease(mouseX, mouseY, button)) {
                 return true;
             }
@@ -68,9 +145,9 @@ public final class UIEventManager {
     }
 
     public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) {
-        List<UIElement> sortedElements = getSortedInteractableElements(mouseX, mouseY);
-
-        for (UIElement element : sortedElements) {
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        for (UIElement element : sorted) {
+            if (!canElementInteractAt(element, mouseX, mouseY)) continue;
             if (element.onMouseScroll(mouseX, mouseY, scrollDelta)) {
                 return true;
             }
@@ -79,43 +156,36 @@ public final class UIEventManager {
     }
 
     public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        List<UIElement> sortedElements = getAllVisibleElements();
-
-        for (UIElement element : sortedElements) {
-            if (element.isEnabled() && element.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) {
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        for (UIElement element : sorted) {
+            if (!element.isEnabled()) continue;
+            if (!canElementInteractAt(element, mouseX, mouseY)) continue;
+            if (element.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY)) {
                 return true;
             }
         }
         return false;
     }
 
-    public void onMouseMove(double mouseX, double mouseY) {
-        UIElement newHovered = LayoutEngine.getTopElementAt(new ArrayList<>(elements), mouseX, mouseY);
-
-        if (hoveredElement != newHovered) {
-            if (hoveredElement != null) {
-                hoveredElement.onMouseLeave();
-            }
-            if (newHovered != null) {
-                newHovered.onMouseEnter();
-            }
-            hoveredElement = newHovered;
-        }
-
-        for (UIElement element : elements) {
-            if (element.isVisible() && element.isRendered()) {
-                element.onMouseMove(mouseX, mouseY);
-            }
-        }
-    }
-
     public boolean onKeyPress(int keyCode, int scanCode, int modifiers) {
-        return focusedElement != null && focusedElement.isRendered() &&
-                focusedElement.onKeyPress(keyCode, scanCode, modifiers);
+        return focusedElement != null
+                && focusedElement.isRendered()
+                && focusedElement.onKeyPress(keyCode, scanCode, modifiers);
     }
 
     public boolean onCharTyped(char chr, int modifiers) {
-        return focusedElement != null && focusedElement.isRendered() && focusedElement.onCharTyped(chr, modifiers);
+        return focusedElement != null
+                && focusedElement.isRendered()
+                && focusedElement.onCharTyped(chr, modifiers);
+    }
+
+    public void onResize(MinecraftClient client, int width, int height) {
+        for (UIElement element : elements) {
+            element.onResize(client, width, height);
+        }
+        if (!Double.isNaN(lastMouseX) && !Double.isNaN(lastMouseY)) {
+            updateHoverUnderMouse();
+        }
     }
 
     public void onTick() {
@@ -128,10 +198,13 @@ public final class UIEventManager {
             hoveredElement = null;
         }
 
-        for(UIElement element : elements) {
-            element.onTick();
+        if (!Double.isNaN(lastMouseX) && !Double.isNaN(lastMouseY)) {
+            updateHoverUnderMouse();
         }
 
+        for (UIElement element : elements) {
+            element.onTick();
+        }
     }
 
     public void setFocus(UIElement element) {
@@ -139,45 +212,45 @@ public final class UIEventManager {
             element = null;
         }
 
-        if (focusedElement != element) {
-            if (focusedElement != null) {
-                focusedElement.onFocusLost();
-            }
-            focusedElement = element;
-            if (element != null) {
-                element.onFocusGained();
-            }
+        if (focusedElement == element) return;
+
+        if (focusedElement != null) {
+            focusedElement.onFocusLost();
+        }
+        focusedElement = element;
+        if (focusedElement != null) {
+            focusedElement.onFocusGained();
         }
     }
 
     public void focusNext() {
-        List<UIElement> focusableElements = elements.stream()
+        List<UIElement> focusable = elements.stream()
                 .filter(UIElement::isVisible)
                 .filter(UIElement::isEnabled)
                 .filter(UIElement::isRendered)
                 .sorted(Comparator.comparing(UIElement::getZIndex))
                 .toList();
 
-        if (focusableElements.isEmpty()) return;
+        if (focusable.isEmpty()) return;
 
-        int currentIndex = focusedElement != null ? focusableElements.indexOf(focusedElement) : -1;
-        int nextIndex = (currentIndex + 1) % focusableElements.size();
-        setFocus(focusableElements.get(nextIndex));
+        int idx = focusedElement != null ? focusable.indexOf(focusedElement) : -1;
+        int next = (idx + 1) % focusable.size();
+        setFocus(focusable.get(next));
     }
 
     public void focusPrevious() {
-        List<UIElement> focusableElements = elements.stream()
+        List<UIElement> focusable = elements.stream()
                 .filter(UIElement::isVisible)
                 .filter(UIElement::isEnabled)
                 .filter(UIElement::isRendered)
                 .sorted(Comparator.comparing(UIElement::getZIndex))
                 .toList();
 
-        if (focusableElements.isEmpty()) return;
+        if (focusable.isEmpty()) return;
 
-        int currentIndex = focusedElement != null ? focusableElements.indexOf(focusedElement) : 0;
-        int prevIndex = (currentIndex - 1 + focusableElements.size()) % focusableElements.size();
-        setFocus(focusableElements.get(prevIndex));
+        int idx = focusedElement != null ? focusable.indexOf(focusedElement) : 0;
+        int prev = (idx - 1 + focusable.size()) % focusable.size();
+        setFocus(focusable.get(prev));
     }
 
     public void resetAllElements() {
@@ -197,19 +270,8 @@ public final class UIEventManager {
         }
 
         lastInteractionTime = 0;
-    }
-
-    public void onResize(MinecraftClient client, int width, int height) {
-        for (UIElement element : elements) {
-            element.onResize(client, width, height);
-        }
-    }
-
-    public void cleanup() {
-        elements.clear();
-        focusedElement = null;
-        hoveredElement = null;
-        lastInteractionTime = 0;
+        lastMouseX = Double.NaN;
+        lastMouseY = Double.NaN;
     }
 
     public void updateAllConstraints() {
@@ -217,64 +279,49 @@ public final class UIEventManager {
             element.updateConstraints();
 
             if (!element.isVisible() || !element.isEnabled()) {
-                if (focusedElement == element) {
-                    setFocus(null);
-                }
+                if (focusedElement == element) setFocus(null);
                 if (hoveredElement == element) {
-                    element.onMouseLeave();
+                    hoveredElement.onMouseLeave();
                     hoveredElement = null;
                 }
             }
         }
+
+        if (!Double.isNaN(lastMouseX) && !Double.isNaN(lastMouseY)) {
+            updateHoverUnderMouse();
+        }
     }
 
+
     public UIElement getTopElementAt(double mouseX, double mouseY) {
-        return LayoutEngine.getTopElementAt(new ArrayList<>(elements), mouseX, mouseY);
+        return pickTopElementAt(mouseX, mouseY);
     }
 
     public List<UIElement> getAllElementsAt(double mouseX, double mouseY) {
-        return LayoutEngine.getElementsAt(new ArrayList<>(elements), mouseX, mouseY);
+        List<UIElement> sorted = getSortedInteractableElements(mouseX, mouseY);
+        List<UIElement> hits = new ArrayList<>();
+        for (UIElement el : sorted) {
+            if (canElementInteractAt(el, mouseX, mouseY)) {
+                hits.add(el);
+            }
+        }
+        return hits;
     }
 
     public boolean canElementInteractAt(UIElement element, double mouseX, double mouseY) {
         return LayoutEngine.canInteractAt(element, new ArrayList<>(elements), mouseX, mouseY);
     }
 
-    public void refreshHover(double mouseX, double mouseY) {
-        UIElement newHovered = getTopElementAt(mouseX, mouseY);
+    public UIElement getFocusedElement() { return focusedElement; }
+    public UIElement getHoveredElement() { return hoveredElement; }
+    public long getLastInteractionTime() { return lastInteractionTime; }
 
-        if (hoveredElement != newHovered) {
-            if (hoveredElement != null) {
-                hoveredElement.onMouseLeave();
-            }
-            hoveredElement = newHovered;
-            if (newHovered != null) {
-                newHovered.onMouseEnter();
-            }
-        }
-    }
-
-    // Getters
-    public UIElement getFocusedElement() {
-        return focusedElement;
-    }
-
-    public UIElement getHoveredElement() {
-        return hoveredElement;
-    }
-
-    public long getLastInteractionTime() {
-        return lastInteractionTime;
-    }
-
-    public Set<UIElement> getAllElements() {
-        return new HashSet<>(elements);
-    }
+    public Set<UIElement> getAllElements() { return new HashSet<>(elements); }
 
     public Map<ZIndex.Layer, Long> getElementCountByLayer() {
         return elements.stream()
                 .collect(Collectors.groupingBy(
-                        element -> element.getZIndex().getLayer(),
+                        e -> e.getZIndex().getLayer(),
                         Collectors.counting()
                 ));
     }

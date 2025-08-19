@@ -360,6 +360,10 @@ public abstract class UIElement implements IElement {
     public boolean isEnabled() { return enabled; }
     public boolean isFocused() { return focused; }
     public boolean isHovered() { return hovered; }
+    public void setHovered(boolean v) {
+        if (hovered == v) return;
+        hovered = v;
+    }
     public boolean isRendered() { return rendered; }
     public UIStyleSystem getStyleSystem() { return styleSystem; }
     public UIElement getParent() { return parent; }

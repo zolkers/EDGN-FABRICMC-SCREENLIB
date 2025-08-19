@@ -257,6 +257,9 @@ public abstract class BaseTemplate extends EventTemplate {
         this.contentHeight = height - headerHeight - footerHeight;
     }
 
+    /**
+     * Carrying everything
+     */
     @Override
     protected void refreshWidgetPositions() {
         if (width <= 0 || height <= 0) return;

@@ -18,6 +18,7 @@ import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @SuppressWarnings({"unused","unchecked","UnusedReturnValue"})
@@ -45,13 +46,16 @@ public class TextAreaItem extends BaseItem {
     }
 
     public TextAreaItem withText(String text) { model.setText(text); ensureTextComponent(); return this; }
+
     public TextAreaItem withText(TextComponent comp) {
         textComponent = comp == null ? null
                 : comp.align(TextComponent.TextAlign.LEFT)
                 .verticalAlign(TextComponent.VerticalAlign.TOP)
                 .setSafetyMargin(textSafetyMargin);
+        model.setText(comp != null ? comp.getText() : "");
         return this;
     }
+
     public TextAreaItem withPlaceholder(String placeholder) {
         placeholderComponent = new TextComponent(placeholder == null ? "" : placeholder, textRenderer)
                 .align(TextComponent.TextAlign.LEFT)
@@ -173,6 +177,7 @@ public class TextAreaItem extends BaseItem {
         int x = cx + getPaddingLeft(), y = cy + getPaddingTop();
         int w = Math.max(0, cw - getPaddingLeft() - getPaddingRight());
         int h = Math.max(0, ch - getPaddingTop() - getPaddingBottom());
+
         ensureTextComponent();
         if (placeholderComponent == null) withPlaceholder("");
         if (!placeholderComponent.hasCustomStyling()) placeholderComponent.color(0x7FFFFFFF);
@@ -188,16 +193,44 @@ public class TextAreaItem extends BaseItem {
         DrawingUtils.pushClip(ctx, x, y, w, h);
 
         if (model.length() == 0) {
-            placeholderComponent.verticalAlign(TextComponent.VerticalAlign.TOP).render(ctx, x, y, w, h);
+            if (!isFocused()) {
+                placeholderComponent
+                        .verticalAlign(TextComponent.VerticalAlign.TOP)
+                        .render(ctx, x, y, w, h);
+            } else if (caretVisible) {
+                int caretColor =
+                        (textComponent != null && textComponent.hasCustomStyling())
+                                ? (textComponent.getColor() | 0xFF000000)
+                                : (getComputedStyles().textColor | 0xFF000000);
+
+                DrawingUtils.drawVLine(
+                        ctx,
+                        x,
+                        y - 1,
+                        y + textRenderer.fontHeight + 1,
+                        caretColor
+                );
+            }
         } else {
             int globalIndex = indexAtLineStart(lines, firstLine);
             for (int i = firstLine; i < lines.size(); i++) {
                 int lineY = y + yOffset + (i - firstLine) * lh;
                 if (lineY > y + h) break;
+
                 String line = lines.get(i);
-                if (model.hasSelection()) renderSelectionLine(ctx, x, lineY, w, line, globalIndex);
-                textComponent.cloneWithNewText(line).verticalAlign(TextComponent.VerticalAlign.TOP).render(ctx, x, lineY, w, textRenderer.fontHeight);
-                if (isFocused() && caretVisible) renderCaretIfOnLine(ctx, x, lineY, line, globalIndex);
+
+                if (model.hasSelection()) {
+                    renderSelectionLine(ctx, x, lineY, w, line, globalIndex);
+                }
+
+                textComponent.cloneWithNewText(line)
+                        .verticalAlign(TextComponent.VerticalAlign.TOP)
+                        .render(ctx, x, lineY, w, textRenderer.fontHeight);
+
+                if (isFocused() && caretVisible) {
+                    renderCaretIfOnLine(ctx, x, lineY, line, globalIndex);
+                }
+
                 globalIndex += line.length() + 1;
             }
         }
@@ -205,33 +238,38 @@ public class TextAreaItem extends BaseItem {
         DrawingUtils.popClip(ctx);
     }
 
+
     private void renderSelectionLine(DrawContext ctx, int x, int lineY, int w, String line, int globalStart) {
         int lh = textRenderer.fontHeight;
         int s = model.getSelectionStart(), e = model.getSelectionEnd();
-        int lineStart = globalStart, lineEnd = globalStart + line.length();
-        int rs = Math.max(lineStart, Math.min(lineEnd, s));
-        int re = Math.max(lineStart, Math.min(lineEnd, e));
+        int lineEnd = globalStart + line.length();
+        int rs = Math.max(globalStart, Math.min(lineEnd, s));
+        int re = Math.max(globalStart, Math.min(lineEnd, e));
         if (re <= rs) return;
-        int sx = x + textRenderer.getWidth(line.substring(0, rs - lineStart));
-        int ex = x + textRenderer.getWidth(line.substring(0, re - lineStart));
+        int sx = x + textRenderer.getWidth(line.substring(0, rs - globalStart));
+        int ex = x + textRenderer.getWidth(line.substring(0, re - globalStart));
         DrawingUtils.fillRect(ctx, sx, lineY, Math.max(0, ex - sx), lh, selectionColor);
     }
 
     private void renderCaretIfOnLine(DrawContext ctx, int x, int lineY, String line, int globalStart) {
         int lh = textRenderer.fontHeight;
         int c = model.getCaret();
-        int lineStart = globalStart, lineEnd = globalStart + line.length();
-        if (c < lineStart || c > lineEnd) return;
-        int col = c - lineStart;
+        int lineEnd = globalStart + line.length();
+        if (c < globalStart || c > lineEnd) return;
+        int col = c - globalStart;
         int cx = x + textRenderer.getWidth(line.substring(0, Math.max(0, Math.min(col, line.length()))));
-        DrawingUtils.drawVLine(ctx, cx, lineY - 1, lineY + lh + 1, getComputedStyles().textColor | 0xFF000000);
+        int caretColor = (textComponent != null && textComponent.hasCustomStyling())
+                        ? (textComponent.getColor() | 0xFF000000)
+                        : (getComputedStyles().textColor | 0xFF000000);
+
+        DrawingUtils.drawVLine(ctx, cx, lineY - 1, lineY + lh + 1, caretColor);
     }
 
     private List<String> computeLines(String text, int maxWidth) {
         if (!wrap) {
             List<String> out = new ArrayList<>();
             String[] raw = text.split("\n", -1);
-            for (String s : raw) out.add(s);
+            Collections.addAll(out, raw);
             return out;
         }
         List<OrderedText> ordered = textRenderer.wrapLines(Text.literal(text), Math.max(1, maxWidth));

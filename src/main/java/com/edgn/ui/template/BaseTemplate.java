@@ -78,6 +78,9 @@ public abstract class BaseTemplate extends EventTemplate {
      */
     protected void tickEvent() {}
 
+    /**
+     * The resize entry point for the user
+     */
     protected void resizeEvent() {}
 
     @Override
@@ -109,16 +112,44 @@ public abstract class BaseTemplate extends EventTemplate {
     }
 
     @Override
-    public final void onResize(net.minecraft.client.MinecraftClient client, int width, int height) {
+    public final void onResize(MinecraftClient client, int width, int height) {
         String s = getClass().getSimpleName();
         try {
             Safe.run(s, ScreenCrashException.Phase.RESIZE, this::updateScreenValues);
-            Safe.run(s, ScreenCrashException.Phase.RESIZE, this::updateLayout);
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, this::reflowLayout);
             Safe.run(s, ScreenCrashException.Phase.RESIZE, this::resizeEvent);
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, () -> uiSystem.getEventManager().onResize(client, width, height));
         } catch (ScreenCrashException e) {
             Crash.handle(this, e, this::close);
         }
     }
+
+    protected void reflowLayout() {
+        if (headerContent != null) {
+            headerContent.setX(0);
+            headerContent.setY(0);
+            headerContent.setWidth(width);
+            headerContent.setHeight(headerHeight);
+            headerContent.markConstraintsDirty();
+        }
+
+        if (mainContent != null) {
+            mainContent.setX(0);
+            mainContent.setY(headerHeight);
+            mainContent.setWidth(width);
+            mainContent.setHeight(contentHeight);
+            mainContent.markConstraintsDirty();
+        }
+
+        if (footerContent != null) {
+            footerContent.setX(0);
+            footerContent.setY(height - footerHeight);
+            footerContent.setWidth(width);
+            footerContent.setHeight(footerHeight);
+            footerContent.markConstraintsDirty();
+        }
+    }
+
 
     protected void buildUI() {
         if(settings.hasHeader()) {
@@ -186,10 +217,6 @@ public abstract class BaseTemplate extends EventTemplate {
         context.drawCenteredTextWithShadow(textRenderer, footerText, width / 2,
                 this.height - (this.footerHeight / 2) - 3, 0xFFAAAAAA);
         context.fill(0, height - footerHeight, width, height - footerHeight + 1, 0x40FFFFFF);
-    }
-
-    protected void updateLayout() {
-        buildUI();
     }
 
     @Override

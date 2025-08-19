@@ -44,6 +44,9 @@ public abstract class UIElement implements IElement {
 
     protected boolean ignoreParentScroll = false;
 
+    private String stateKey;
+
+
     public UIElement(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         this.styleSystem = styleSystem;
         this.x = x; this.y = y; this.width = width; this.height = height;
@@ -244,6 +247,8 @@ public abstract class UIElement implements IElement {
     public boolean onMouseScroll(double mouseX, double mouseY, double scrollDelta) { return false; }
     public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) { return false; }
 
+    public void onResize(MinecraftClient client, int width, int height) {}
+
     public boolean onCharTyped(char chr, int modifiers) { return false; }
     public boolean onKeyPress(int keyCode, int scanCode, int modifiers) { return false; }
 
@@ -252,6 +257,10 @@ public abstract class UIElement implements IElement {
     public void onMouseEnter() {
         hovered = true;
         if (onMouseEnterHandler != null) onMouseEnterHandler.run();
+    }
+
+    public void onTick() {
+
     }
 
     public void onMouseLeave() {
@@ -398,4 +407,5 @@ public abstract class UIElement implements IElement {
 
         public boolean isValid() { return width > 0 && height > 0; }
     }
+
 }

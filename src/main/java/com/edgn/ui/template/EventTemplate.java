@@ -68,6 +68,7 @@ public abstract class EventTemplate extends Screen {
         try {
             Safe.run(s, ScreenCrashException.Phase.RESIZE, () -> super.resize(client, width, height));
             Safe.run(s, ScreenCrashException.Phase.RESIZE, () -> uiSystem.getEventManager().resetAllElements());
+            Safe.run(s, ScreenCrashException.Phase.RESIZE, () -> uiSystem.getEventManager().onResize(client, width, height));
             Safe.run(s, ScreenCrashException.Phase.RESIZE, () -> this.onResize(client, width, height));
         } catch (ScreenCrashException e) {
             Crash.handle(this, e, this::close);

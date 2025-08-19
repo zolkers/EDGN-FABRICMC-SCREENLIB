@@ -96,7 +96,7 @@ public class ButtonItem extends BaseItem {
     @Override
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
         if (!enabled || !canInteract(mouseX, mouseY)) return false;
-        setState(ItemState.PRESSED);
+        this.setState(ItemState.PRESSED);
         return super.onMouseClick(mouseX, mouseY, button);
     }
 
@@ -109,15 +109,8 @@ public class ButtonItem extends BaseItem {
     }
 
     @Override
-    public void onMouseEnter() {
-        if (!enabled) return;
-        setState(ItemState.HOVERED);
-    }
-
-    @Override
-    public void onMouseLeave() {
-        if (!enabled) return;
-        setState(ItemState.NORMAL);
+    public void onTick() {
+        if(this.isHovered()) setState(ItemState.HOVERED);
     }
 
     @Override
@@ -137,7 +130,7 @@ public class ButtonItem extends BaseItem {
         int radius = getBorderRadius();
         Shadow shadow = getShadow();
 
-        float scale = (hasClass(StyleKey.HOVER_SCALE) && getState() == ItemState.HOVERED)
+        float scale = (hasClass(StyleKey.HOVER_SCALE) && isHovered())
                 ? getAnimatedScale()
                 : 1.0f;
 
@@ -165,7 +158,7 @@ public class ButtonItem extends BaseItem {
         if (getState() == ItemState.PRESSED) {
             return darken(base);
         }
-        if (getState() == ItemState.HOVERED) {
+        if (this.isHovered()) {
             float f = hasClass(StyleKey.HOVER_BRIGHTEN) ? 0.20f : 0.08f;
             return brighten(base, f);
         }

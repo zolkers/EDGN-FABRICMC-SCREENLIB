@@ -14,6 +14,8 @@ import java.util.List;
 @SuppressWarnings({"unused", "unchecked"})
 public abstract class BaseContainer extends UIElement implements IContainer {
     protected final List<UIElement> children = new ArrayList<>();
+    private UIElement capturedElement = null;
+    private int capturedButton = -1;
 
     public BaseContainer(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
@@ -91,26 +93,30 @@ public abstract class BaseContainer extends UIElement implements IContainer {
             double my = mouseY - offY;
 
             if (!child.canInteract(mx, my)) continue;
-            if (child.onMouseClick(mx, my, button)) return true;
+            if (child.onMouseClick(mx, my, button)) {
+                capturedElement = child;
+                capturedButton = button;
+                return true;
+            }
         }
-
         return super.onMouseClick(mouseX, mouseY, button);
     }
 
     @Override
     public boolean onMouseRelease(double mouseX, double mouseY, int button) {
-        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
-        for (int i = sorted.size() - 1; i >= 0; i--) {
-            UIElement child = sorted.get(i);
-            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-
-            int offX = getChildInteractionOffsetX(child);
-            int offY = getChildInteractionOffsetY(child);
-            double mx = mouseX - offX;
-            double my = mouseY - offY;
-
-            if (!child.canInteract(mx, my)) continue;
-            if (child.onMouseRelease(mx, my, button)) return true;
+        try {
+            if (capturedElement != null && button == capturedButton) {
+                int offX = getChildInteractionOffsetX(capturedElement);
+                int offY = getChildInteractionOffsetY(capturedElement);
+                double mx = mouseX - offX;
+                double my = mouseY - offY;
+                return capturedElement.onMouseRelease(mx, my, button);
+            }
+        } finally {
+            if (button == capturedButton) {
+                capturedElement = null;
+                capturedButton = -1;
+            }
         }
         return super.onMouseRelease(mouseX, mouseY, button);
     }
@@ -135,18 +141,12 @@ public abstract class BaseContainer extends UIElement implements IContainer {
 
     @Override
     public boolean onMouseDrag(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
-        List<UIElement> sorted = LayoutEngine.sortByRenderOrder(children);
-        for (int i = sorted.size() - 1; i >= 0; i--) {
-            UIElement child = sorted.get(i);
-            if (!child.isVisible() || !child.isEnabled() || !child.isRendered()) continue;
-
-            int offX = getChildInteractionOffsetX(child);
-            int offY = getChildInteractionOffsetY(child);
+        if (capturedElement != null && button == capturedButton) {
+            int offX = getChildInteractionOffsetX(capturedElement);
+            int offY = getChildInteractionOffsetY(capturedElement);
             double mx = mouseX - offX;
             double my = mouseY - offY;
-
-            if (!child.canInteract(mx, my)) continue;
-            if (child.onMouseDrag(mx, my, button, deltaX, deltaY)) return true;
+            return capturedElement.onMouseDrag(mx, my, button, deltaX, deltaY);
         }
         return super.onMouseDrag(mouseX, mouseY, button, deltaX, deltaY);
     }

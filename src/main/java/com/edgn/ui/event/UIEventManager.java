@@ -3,6 +3,7 @@ package com.edgn.ui.event;
 import com.edgn.ui.core.UIElement;
 import com.edgn.ui.layout.LayoutEngine;
 import com.edgn.ui.layout.ZIndex;
+import net.minecraft.client.MinecraftClient;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -126,6 +127,11 @@ public final class UIEventManager {
             hoveredElement.onMouseLeave();
             hoveredElement = null;
         }
+
+        for(UIElement element : elements) {
+            element.onTick();
+        }
+
     }
 
     public void setFocus(UIElement element) {
@@ -191,6 +197,12 @@ public final class UIEventManager {
         }
 
         lastInteractionTime = 0;
+    }
+
+    public void onResize(MinecraftClient client, int width, int height) {
+        for (UIElement element : elements) {
+            element.onResize(client, width, height);
+        }
     }
 
     public void cleanup() {

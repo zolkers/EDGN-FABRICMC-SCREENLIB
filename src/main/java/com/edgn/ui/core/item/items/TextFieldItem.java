@@ -36,14 +36,18 @@ public class TextFieldItem extends BaseItem {
     }
 
     public TextFieldItem withText(String text) { model.setText(text); ensureTextComponent(); return this; }
+
     public TextFieldItem withText(TextComponent comp) {
         textComponent = comp == null ? null
                 : comp.setOverflowMode(TextComponent.TextOverflowMode.TRUNCATE)
                 .align(TextComponent.TextAlign.LEFT)
                 .verticalAlign(TextComponent.VerticalAlign.MIDDLE)
                 .setSafetyMargin(textSafetyMargin);
+        model.setText(comp != null ? comp.getText() : "");
         return this;
     }
+
+
     public TextFieldItem withPlaceholder(String placeholder) {
         placeholderComponent = new TextComponent(placeholder == null ? "" : placeholder, textRenderer)
                 .setOverflowMode(TextComponent.TextOverflowMode.TRUNCATE)
@@ -129,10 +133,10 @@ public class TextFieldItem extends BaseItem {
             case GLFW.GLFW_KEY_END -> { moveCaret(model.length(), shift); return true; }
             case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(ctrl); return true; }
             case GLFW.GLFW_KEY_DELETE -> { model.delete(ctrl); return true; }
-            case GLFW.GLFW_KEY_A -> { if (ctrl) { model.setSelection(0, model.length()); return true; } break; }
-            case GLFW.GLFW_KEY_C -> { if (ctrl) { copySelection(); return true; } break; }
-            case GLFW.GLFW_KEY_X -> { if (ctrl) { cutSelection(); return true; } break; }
-            case GLFW.GLFW_KEY_V -> { if (ctrl) { pasteClipboard(); return true; } break; }
+            case GLFW.GLFW_KEY_A -> { if (ctrl) { model.setSelection(0, model.length()); return true; }}
+            case GLFW.GLFW_KEY_C -> { if (ctrl) { copySelection(); return true; } }
+            case GLFW.GLFW_KEY_X -> { if (ctrl) { cutSelection(); return true; } }
+            case GLFW.GLFW_KEY_V -> { if (ctrl) { pasteClipboard(); return true; } }
             case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> { return true; }
         }
         return false;
@@ -148,6 +152,7 @@ public class TextFieldItem extends BaseItem {
     @Override
     public void render(DrawContext context) {
         if (!visible) return;
+        System.out.println("[render] TF model = '" + model.getText() + "'");
         updateConstraints();
         int cx = getCalculatedX(), cy = getCalculatedY(), cw = getCalculatedWidth(), ch = getCalculatedHeight();
         int baseBg = getBgColor(); if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.SURFACE);
@@ -173,7 +178,7 @@ public class TextFieldItem extends BaseItem {
         if (placeholderComponent == null) withPlaceholder("");
         if (!placeholderComponent.hasCustomStyling()) placeholderComponent.color(0x7FFFFFFF);
         DrawingUtils.pushClip(context, x, y, w, h);
-        if (model.length() == 0) {
+        if (model.length() == 0 && !isFocused()) {
             placeholderComponent.render(context, x, y, w, h);
         } else {
             if (model.hasSelection()) renderSelection(context, x, y, w, h, display);
@@ -195,7 +200,11 @@ public class TextFieldItem extends BaseItem {
     private void renderCaret(DrawContext ctx, int x, int y, int w, int h, String display) {
         int baseY = y + (h - textRenderer.fontHeight) / 2;
         int cx = textXFor(display, x, model.getCaret());
-        DrawingUtils.drawVLine(ctx, cx, baseY - 1, baseY + textRenderer.fontHeight + 1, getComputedStyles().textColor | 0xFF000000);
+        int caretColor = (textComponent != null && textComponent.hasCustomStyling())
+                        ? (textComponent.getColor() | 0xFF000000)
+                        : (getComputedStyles().textColor | 0xFF000000);
+
+        DrawingUtils.drawVLine(ctx, cx, baseY - 1, baseY + textRenderer.fontHeight + 1, caretColor);
     }
 
     private int textXFor(String display, int x, int index) {
@@ -308,5 +317,10 @@ public class TextFieldItem extends BaseItem {
         String clip = MinecraftClient.getInstance().keyboard.getClipboard();
         if (clip == null || clip.isEmpty()) return;
         model.insert(clip.replace("\n"," ").replace("\r",""));
+    }
+
+    @Override
+    public void onResize(MinecraftClient client, int width, int height) {
+        this.setText(model.getText());
     }
 }

@@ -257,6 +257,12 @@ public abstract class BaseTemplate extends EventTemplate {
         this.contentHeight = height - headerHeight - footerHeight;
     }
 
+    @Override
+    protected void refreshWidgetPositions() {
+        if (width <= 0 || height <= 0) return;
+        reflowLayout();
+    }
+
     public UIStyleSystem getUISystem() { return uiSystem; }
     public int getHeaderHeight() { return headerHeight; }
     public int getFooterHeight() { return footerHeight; }

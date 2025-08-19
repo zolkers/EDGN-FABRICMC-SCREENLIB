@@ -318,9 +318,4 @@ public class TextFieldItem extends BaseItem {
         if (clip == null || clip.isEmpty()) return;
         model.insert(clip.replace("\n"," ").replace("\r",""));
     }
-
-    @Override
-    public void onResize(MinecraftClient client, int width, int height) {
-        this.setText(model.getText());
-    }
 }

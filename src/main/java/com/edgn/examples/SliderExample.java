@@ -2,8 +2,11 @@ package com.edgn.examples;
 
 import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.core.container.containers.FlexContainer;
+import com.edgn.ui.core.container.containers.ListContainer;
 import com.edgn.ui.core.item.items.SliderItem;
-import com.edgn.ui.core.models.slider.*;
+import com.edgn.ui.core.models.slider.DoubleSliderModel;
+import com.edgn.ui.core.models.slider.FloatSliderModel;
+import com.edgn.ui.core.models.slider.IntSliderModel;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
@@ -68,7 +71,28 @@ public class SliderExample extends BaseTemplate {
                 .thumbColor(ColorUtils.NamedColor.IVORY.toInt())
                 .addClass(StyleKey.FLEX_BASIS_25);
 
-        return content.addChild(intSliderItem).addChild(floatSliderItem).addChild(doubleSliderItem);
+        ListContainer list = new ListContainer(uiSystem, 0, 0, this.width, 200)
+                .setScrollable(true)
+                .setScrollAxes(true, false)
+                .addClass(StyleKey.P_4, StyleKey.GAP_3, StyleKey.BG_BACKGROUND);
+
+        for (int i = 0; i < 200; i++) {
+            SliderItem<Double> slider = new SliderItem<>(uiSystem, 0, 0, 160, 28, new DoubleSliderModel())
+                    .textRainbow()
+                    .trackColor(ColorUtils.NamedColor.GREENYELLOW.toInt())
+                    .fillColor(ColorUtils.NamedColor.GREEN.toInt())
+                    .thumbColor(ColorUtils.NamedColor.IVORY.toInt())
+                    .addClass(StyleKey.FLEX_BASIS_25);
+
+            list.addChild(slider);
+        }
+
+        return content
+                .addChild(intSliderItem)
+                .addChild(floatSliderItem)
+                .addChild(doubleSliderItem)
+                .addChild(list);
+
     }
 
     @Override

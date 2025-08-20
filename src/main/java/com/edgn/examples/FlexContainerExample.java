@@ -88,6 +88,11 @@ public class FlexContainerExample extends BaseTemplate {
                 .onClick(() -> MinecraftClient.getInstance().setScreen(new SliderExample(this)))
         );
 
+        content.addChild(button(uiSystem, "Label example")
+                .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
+                .onClick(() -> MinecraftClient.getInstance().setScreen(new LabelExample(this)))
+        );
+
         return content;
     }
 

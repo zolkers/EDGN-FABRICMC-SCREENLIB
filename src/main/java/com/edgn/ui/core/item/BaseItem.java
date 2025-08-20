@@ -6,7 +6,7 @@ import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
 
 @SuppressWarnings("unused")
-public abstract class BaseItem extends UIElement {
+public abstract class BaseItem extends UIElement implements IItem {
     protected ItemState state = ItemState.NORMAL;
     protected long lastStateChange = 0;
     protected static final long ANIMATION_DURATION = 150;

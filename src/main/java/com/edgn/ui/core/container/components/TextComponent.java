@@ -20,14 +20,8 @@ public class TextComponent implements Component {
     public enum EffectMode { PULSE, HORIZONTAL_LTR, HORIZONTAL_RTL }
     public enum TextOverflowMode { NONE, TRUNCATE, WRAP, SCALE }
 
-    private static volatile FontRenderer DEFAULT_RENDERER;
-    public static void setDefaultFontRenderer(FontRenderer fr) { DEFAULT_RENDERER = fr; }
-
     public static FontRenderer getDefaultFontRenderer() {
-        if (DEFAULT_RENDERER == null) {
-            DEFAULT_RENDERER = new com.edgn.ui.core.container.components.font.MinecraftFontRenderer();
-        }
-        return DEFAULT_RENDERER;
+        return new MinecraftFontRenderer();
     }
 
     private final String text;
@@ -279,7 +273,7 @@ public class TextComponent implements Component {
     }
 
     private int interpolateColor(int color1, int color2, float factor) {
-        float f = clamp(factor, 0.0f, 1.0f);
+        float f = Math.clamp(factor, 0.0f, 1.0f);
         int r1 = (color1 >> 16) & 0xFF;
         int g1 = (color1 >> 8) & 0xFF;
         int b1 = color1 & 0xFF;
@@ -293,10 +287,6 @@ public class TextComponent implements Component {
         int b = (int) (b1 + (r2 - b1) * f);
         int a = (int) (a1 + (r2 - a1) * f);
         return (a << 24) | (r << 16) | (g << 8) | b;
-    }
-
-    private static float clamp(float v, float min, float max) {
-        return v < min ? min : Math.min(v, max);
     }
 
     private String getProcessedText() {
@@ -421,7 +411,7 @@ public class TextComponent implements Component {
     public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
     public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
     public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
-    public TextComponent setMinScale(float minScale) { this.minScale = clamp(minScale, 0.1f, 1.0f); return this; }
+    public TextComponent setMinScale(float minScale) { this.minScale = Math.clamp(minScale, 0.1f, 1.0f); return this; }
     public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
     public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
     public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }

@@ -19,7 +19,7 @@ public class TextFieldExample extends BaseTemplate {
 
     @Override
     protected TemplateSettings templateSettings() {
-        return new TemplateSettings().setFooter(false).setHeader(false);
+        return new TemplateSettings().setToDefault();
     }
 
     @Override

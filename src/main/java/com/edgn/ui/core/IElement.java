@@ -1,9 +1,9 @@
 package com.edgn.ui.core;
 
+import com.edgn.ui.core.container.components.font.FontRenderer;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
-import net.minecraft.client.font.TextRenderer;
 
 public interface IElement {
     <T extends IElement> T addClass(StyleKey... keys);
@@ -20,7 +20,7 @@ public interface IElement {
     <T extends IElement> T setConstraints(LayoutConstraints constraints);
     <T extends IElement> T setVisible(boolean visible);
     <T extends IElement> T setEnabled(boolean enabled);
-    <T extends IElement> T setTextRenderer(TextRenderer textRenderer);
+    <T extends IElement> T setFontRenderer(FontRenderer fontRenderer);
 
     default int getChildInteractionOffsetX(UIElement child) {
         return 0;

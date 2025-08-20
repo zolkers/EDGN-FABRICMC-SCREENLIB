@@ -1,5 +1,7 @@
 package com.edgn.ui.core;
 
+import com.edgn.ui.core.container.components.TextComponent;
+import com.edgn.ui.core.container.components.font.FontRenderer;
 import com.edgn.ui.css.CSSStyleApplier;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
@@ -7,7 +9,6 @@ import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
 import java.util.Collections;
@@ -28,7 +29,7 @@ public abstract class UIElement implements IElement {
     protected boolean hovered = false;
     protected LayoutConstraints constraints = new LayoutConstraints();
     protected ZIndex zIndex = ZIndex.CONTENT;
-    protected TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
+    protected FontRenderer fontRenderer = TextComponent.getDefaultFontRenderer();
     protected UIElement parent = null;
 
     protected int calculatedX;
@@ -339,8 +340,8 @@ public abstract class UIElement implements IElement {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends IElement> T setTextRenderer(TextRenderer textRenderer) {
-        this.textRenderer = textRenderer != null ? textRenderer : MinecraftClient.getInstance().textRenderer;
+    public <T extends IElement> T setFontRenderer(FontRenderer fontRenderer) {
+        this.fontRenderer = fontRenderer != null ? fontRenderer : TextComponent.getDefaultFontRenderer();
         return (T) this;
     }
 
@@ -385,7 +386,7 @@ public abstract class UIElement implements IElement {
     public boolean isRendered() { return rendered; }
     public UIStyleSystem getStyleSystem() { return styleSystem; }
     public UIElement getParent() { return parent; }
-    public TextRenderer getTextRenderer() { return textRenderer; }
+    public FontRenderer getFontRenderer() { return fontRenderer; }
     public LayoutConstraints getConstraints() { return constraints; }
 
     public ZIndex getZIndex() { return zIndex; }

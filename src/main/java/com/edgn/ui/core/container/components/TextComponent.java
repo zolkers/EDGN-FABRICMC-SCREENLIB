@@ -1,11 +1,8 @@
 package com.edgn.ui.core.container.components;
 
-import com.edgn.ui.utils.ColorUtils;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
+import com.edgn.ui.core.container.components.font.FontRenderer;
+import com.edgn.ui.core.container.components.font.MinecraftFontRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.text.OrderedText;
-import net.minecraft.text.Text;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -23,8 +20,18 @@ public class TextComponent implements Component {
     public enum EffectMode { PULSE, HORIZONTAL_LTR, HORIZONTAL_RTL }
     public enum TextOverflowMode { NONE, TRUNCATE, WRAP, SCALE }
 
+    private static volatile FontRenderer DEFAULT_RENDERER;
+    public static void setDefaultFontRenderer(FontRenderer fr) { DEFAULT_RENDERER = fr; }
+
+    public static FontRenderer getDefaultFontRenderer() {
+        if (DEFAULT_RENDERER == null) {
+            DEFAULT_RENDERER = new com.edgn.ui.core.container.components.font.MinecraftFontRenderer();
+        }
+        return DEFAULT_RENDERER;
+    }
+
     private final String text;
-    private TextRenderer textRenderer;
+    private FontRenderer font;
 
     private TextOverflowMode overflowMode = TextOverflowMode.NONE;
     private String ellipsis = "...";
@@ -35,7 +42,7 @@ public class TextComponent implements Component {
 
     private EffectType effectType = EffectType.SOLID;
     private EffectMode effectMode = EffectMode.PULSE;
-    private int startColor = ColorUtils.NamedColor.WHITE.toInt();
+    private int startColor = 0xFFFFFFFF;
     private int endColor = 0xFF000000;
     private float effectSpeed = 1.0f;
 
@@ -69,22 +76,20 @@ public class TextComponent implements Component {
     private boolean isStrikethrough = false;
     private final List<TextEffect> customEffects = new ArrayList<>();
 
-    public TextComponent(String text, TextRenderer textRenderer) {
+    public TextComponent(String text, FontRenderer font) {
         this.text = text;
-        this.textRenderer = textRenderer;
+        this.font = font;
     }
 
     public TextComponent(String text) {
-        this.text = text;
-        this.textRenderer = MinecraftClient.getInstance().textRenderer;
+        this(text, getDefaultFontRenderer());
     }
 
     public void render(DrawContext context, int x, int y, int maxWidth, int maxHeight) {
         if (text == null || text.isEmpty() || !animationEnabled) return;
         this.maxWidth = maxWidth - safetyMargin;
         String displayText = getProcessedText();
-        if(displayText == null) return;
-        if (displayText.isEmpty()) return;
+        if (displayText == null || displayText.isEmpty()) return;
         switch (overflowMode) {
             case WRAP -> renderWrapped(context, x, y, this.maxWidth, maxLines);
             case SCALE -> renderScaled(context, x, y, this.maxWidth, maxHeight, displayText);
@@ -99,7 +104,7 @@ public class TextComponent implements Component {
     }
 
     private void renderScaled(DrawContext context, int x, int y, int maxWidth, int maxHeight, String displayText) {
-        int textWidth = textRenderer.getWidth(displayText);
+        int textWidth = font.width(displayText);
         if (textWidth <= maxWidth) {
             renderSingle(context, x, y, maxWidth, maxHeight, displayText);
             return;
@@ -116,29 +121,19 @@ public class TextComponent implements Component {
     }
 
     public void renderWrapped(DrawContext context, int x, int y, int maxWidth, int maxLines) {
-        if (text == null || text.isEmpty() || textRenderer == null || context == null) return;
-        List<OrderedText> orderedLines = textRenderer.wrapLines(Text.literal(this.text), maxWidth);
-        List<String> stringLines = orderedLines.stream().map(orderedText -> {
-            StringBuilder sb = new StringBuilder();
-            orderedText.accept((index, style, codePoint) -> {
-                sb.append(Character.toChars(codePoint));
-                return true;
-            });
-            return sb.toString();
-        }).toList();
+        if (text == null || text.isEmpty() || context == null) return;
+        List<String> lines = font.wrap(this.text, maxWidth);
         int yOffset = 0;
         int charOffset = 0;
-        int lineHeight = textRenderer.fontHeight + 2;
-        for (int i = 0; i < Math.min(stringLines.size(), maxLines); i++) {
-            String line = stringLines.get(i);
-            if(line == null) continue;
-            if (i == maxLines - 1 && stringLines.size() > maxLines) {
-                line = truncateText(line, maxWidth);
-            }
+        int lineHeight = font.lineHeight() + 2;
+        for (int i = 0; i < Math.min(lines.size(), maxLines); i++) {
+            String line = lines.get(i);
+            if (line == null) continue;
+            if (i == maxLines - 1 && lines.size() > maxLines) line = truncateText(line, maxWidth);
             int renderX = calculateX(x, maxWidth, line);
             renderInternal(context, line, renderX, y + yOffset, charOffset);
             yOffset += lineHeight;
-            charOffset += stringLines.get(i).length();
+            charOffset += line.length();
         }
     }
 
@@ -147,49 +142,43 @@ public class TextComponent implements Component {
         int renderX = x;
         int renderY = y;
         if (activeAnimations.contains(AnimationType.SHAKE)) {
-            float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f * animationSpeed;
-            renderX += (int) (Math.sin(time * 20) * shakeIntensity);
-            renderY += (int) (Math.cos(time * 25) * shakeIntensity);
+            float t = (System.currentTimeMillis() - animationStartTime) / 1000.0f * animationSpeed;
+            renderX += (int) (Math.sin(t * 20) * shakeIntensity);
+            renderY += (int) (Math.cos(t * 25) * shakeIntensity);
         }
-        for (TextEffect effect : customEffects) {
-            effect.apply(this, context, renderX, renderY);
-        }
-        if (hasGlow && !activeAnimations.contains(AnimationType.TYPEWRITER)) {
-            renderGlow(context, textToRender, renderX, renderY);
-        }
-        if (hasShadow) {
-            renderTextWithFormatting(context, textToRender, renderX + shadowOffsetX, renderY + shadowOffsetY, shadowColor, charOffset);
-        }
-        boolean needsPerCharRender = activeAnimations.contains(AnimationType.WAVE) || effectMode != EffectMode.PULSE;
-        if (needsPerCharRender) {
-            renderPerChar(context, textToRender, renderX, renderY, charOffset);
-        } else {
+        for (TextEffect effect : customEffects) effect.apply(this, context, renderX, renderY);
+        if (hasGlow && !activeAnimations.contains(AnimationType.TYPEWRITER)) renderGlow(context, textToRender, renderX, renderY);
+        if (hasShadow) renderTextWithFormatting(context, textToRender, renderX + shadowOffsetX, renderY + shadowOffsetY, shadowColor, charOffset);
+        boolean perChar = activeAnimations.contains(AnimationType.WAVE) || effectMode != EffectMode.PULSE;
+        if (perChar) renderPerChar(context, textToRender, renderX, renderY, charOffset);
+        else {
             int textColor = getCurrentColor(charOffset);
-            if (activeAnimations.contains(AnimationType.PULSE)) {
-                textColor = applyPulseEffect(textColor);
-            }
+            if (activeAnimations.contains(AnimationType.PULSE)) textColor = applyPulseEffect(textColor);
             renderTextWithFormatting(context, textToRender, renderX, renderY, textColor, charOffset);
         }
-        if (isUnderlined || isStrikethrough) {
-            renderTextDecorations(context, textToRender, renderX, renderY, charOffset);
-        }
+        if (isUnderlined || isStrikethrough) renderTextDecorations(context, textToRender, renderX, renderY, charOffset);
     }
 
     private void renderPerChar(DrawContext context, String displayText, int x, int y, int charOffset) {
-        for (int i = 0; i < displayText.length(); i++) {
-            char c = displayText.charAt(i);
-            String charStr = String.valueOf(c);
-            int charX = x + textRenderer.getWidth(displayText.substring(0, i));
-            int charY = y;
-            int charColor = getCurrentColor(i + charOffset);
+        int charX = x;
+        int charY = y;
+        int i = 0;
+        int visIndex = 0;
+        while (i < displayText.length()) {
+            int cp = displayText.codePointAt(i);
+            int len = Character.charCount(cp);
+            String charStr = new String(Character.toChars(cp));
+            int color = getCurrentColor(visIndex + charOffset);
+            int cy = charY;
             if (activeAnimations.contains(AnimationType.WAVE)) {
-                float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
-                charY += (int) (Math.sin(time * animationSpeed * waveFrequency + (i + charOffset) * 0.5f) * waveAmplitude);
+                float t = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
+                cy += (int) (Math.sin(t * animationSpeed * waveFrequency + (visIndex + charOffset) * 0.5f) * waveAmplitude);
             }
-            if (activeAnimations.contains(AnimationType.PULSE)) {
-                charColor = applyPulseEffect(charColor);
-            }
-            renderTextWithFormatting(context, charStr, charX, charY, charColor, i + charOffset);
+            if (activeAnimations.contains(AnimationType.PULSE)) color = applyPulseEffect(color);
+            font.draw(context, charStr, charX, cy, color, false);
+            charX += font.advance(cp);
+            i += len;
+            visIndex++;
         }
     }
 
@@ -212,38 +201,50 @@ public class TextComponent implements Component {
         } else if (isItalic) {
             renderItalicText(context, text, x, y, color, charOffset);
         } else {
-            context.drawText(textRenderer, text, x, y, color, false);
+            font.draw(context, text, x, y, color, false);
         }
     }
 
     private void renderItalicText(DrawContext context, String text, int x, int y, int color, int charOffset) {
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            String charStr = String.valueOf(c);
-            int charX = x + textRenderer.getWidth(text.substring(0, i));
-            int italicOffset = (int) (Math.sin((i + charOffset) * 0.3f) * 1.5f);
-            context.drawText(textRenderer, charStr, charX + italicOffset, y, color, false);
+        int charX = x;
+        int i = 0;
+        int vis = 0;
+        while (i < text.length()) {
+            int cp = text.codePointAt(i);
+            int len = Character.charCount(cp);
+            String s = new String(Character.toChars(cp));
+            int italicOffset = (int) (Math.sin((vis + charOffset) * 0.3f) * 1.5f);
+            font.draw(context, s, charX + italicOffset, y, color, false);
+            charX += font.advance(cp);
+            i += len;
+            vis++;
         }
     }
 
     private void renderBoldItalicText(DrawContext context, String text, int x, int y, int color, int charOffset) {
-        for (int i = 0; i < text.length(); i++) {
-            char c = text.charAt(i);
-            String charStr = String.valueOf(c);
-            int charX = x + textRenderer.getWidth(text.substring(0, i));
-            int italicOffset = (int) (Math.sin((i + charOffset) * 0.3f) * 1.5f);
-            renderBoldText(context, charStr, charX + italicOffset, y, color);
+        int charX = x;
+        int i = 0;
+        int vis = 0;
+        while (i < text.length()) {
+            int cp = text.codePointAt(i);
+            int len = Character.charCount(cp);
+            String s = new String(Character.toChars(cp));
+            int italicOffset = (int) (Math.sin((vis + charOffset) * 0.3f) * 1.5f);
+            renderBoldText(context, s, charX + italicOffset, y, color);
+            charX += font.advance(cp);
+            i += len;
+            vis++;
         }
     }
 
     private void renderTextDecorations(DrawContext context, String displayText, int x, int y, int charOffset) {
-        int textWidth = textRenderer.getWidth(displayText);
+        int textWidth = font.width(displayText);
         if (isUnderlined) {
-            int underlineY = y + textRenderer.fontHeight;
+            int underlineY = y + font.lineHeight();
             context.fill(x, underlineY, x + textWidth, underlineY + 1, getCurrentColor(charOffset));
         }
         if (isStrikethrough) {
-            int strikeY = y + textRenderer.fontHeight / 2;
+            int strikeY = y + font.lineHeight() / 2;
             context.fill(x, strikeY, x + textWidth, strikeY + 1, getCurrentColor(charOffset));
         }
     }
@@ -271,14 +272,14 @@ public class TextComponent implements Component {
     }
 
     private void renderBoldText(DrawContext context, String text, int x, int y, int color) {
-        context.drawText(textRenderer, text, x, y, color, false);
-        context.drawText(textRenderer, text, x + 1, y, color, false);
-        context.drawText(textRenderer, text, x, y + 1, color, false);
-        context.drawText(textRenderer, text, x + 1, y + 1, color, false);
+        font.draw(context, text, x, y, color, false);
+        font.draw(context, text, x + 1, y, color, false);
+        font.draw(context, text, x, y + 1, color, false);
+        font.draw(context, text, x + 1, y + 1, color, false);
     }
 
     private int interpolateColor(int color1, int color2, float factor) {
-        float f = Math.clamp(factor, 0.0f, 1.0f);
+        float f = clamp(factor, 0.0f, 1.0f);
         int r1 = (color1 >> 16) & 0xFF;
         int g1 = (color1 >> 8) & 0xFF;
         int b1 = color1 & 0xFF;
@@ -292,6 +293,10 @@ public class TextComponent implements Component {
         int b = (int) (b1 + (r2 - b1) * f);
         int a = (int) (a1 + (r2 - a1) * f);
         return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
+    private static float clamp(float v, float min, float max) {
+        return v < min ? min : Math.min(v, max);
     }
 
     private String getProcessedText() {
@@ -320,9 +325,9 @@ public class TextComponent implements Component {
 
     private String truncateText(String text, int availableWidth) {
         if (text == null || text.isEmpty() || availableWidth <= 0) return text;
-        int fullTextWidth = textRenderer.getWidth(text);
+        int fullTextWidth = font.width(text);
         if (fullTextWidth <= availableWidth) return text;
-        int ellipsisWidth = textRenderer.getWidth(ellipsis);
+        int ellipsisWidth = font.width(ellipsis);
         if (ellipsisWidth >= availableWidth) return "";
         int maxTextWidth = availableWidth - ellipsisWidth;
         int left = 0;
@@ -331,7 +336,7 @@ public class TextComponent implements Component {
         while (left <= right) {
             int mid = (left + right) / 2;
             String substring = text.substring(0, mid);
-            int substringWidth = textRenderer.getWidth(substring);
+            int substringWidth = font.width(substring);
             if (substringWidth <= maxTextWidth) {
                 bestLength = mid;
                 left = mid + 1;
@@ -340,7 +345,7 @@ public class TextComponent implements Component {
             }
         }
         String result = text.substring(0, bestLength) + ellipsis;
-        while (textRenderer.getWidth(result) > availableWidth && bestLength > 0) {
+        while (font.width(result) > availableWidth && bestLength > 0) {
             bestLength--;
             result = text.substring(0, bestLength) + ellipsis;
         }
@@ -348,7 +353,7 @@ public class TextComponent implements Component {
     }
 
     private int calculateX(int baseX, int maxWidth, String displayText) {
-        int textWidth = textRenderer.getWidth(displayText);
+        int textWidth = font.width(displayText);
         return switch (textAlign) {
             case LEFT -> baseX;
             case CENTER -> baseX + (maxWidth - textWidth) / 2;
@@ -357,7 +362,7 @@ public class TextComponent implements Component {
     }
 
     private int calculateY(int baseY, int maxHeight) {
-        int textHeight = textRenderer.fontHeight;
+        int textHeight = font.lineHeight();
         return switch (verticalAlign) {
             case TOP -> baseY;
             case MIDDLE -> baseY + (maxHeight - textHeight) / 2;
@@ -393,16 +398,14 @@ public class TextComponent implements Component {
         return (Math.min(255, newAlpha) << 24) | (r << 16) | (g << 8) | b;
     }
 
-    //boring getters and setters, which is why they are coded in one line (thx LLM for doing this boring job instead of me)
-
     public String getText() { return text; }
     public int getBaseColor() { return startColor; }
     public TextAlign getTextAlign() { return textAlign; }
     public VerticalAlign getVerticalAlign() { return verticalAlign; }
     public Set<AnimationType> getActiveAnimations() { return EnumSet.copyOf(activeAnimations); }
     public boolean isAnimationEnabled() { return animationEnabled; }
-    public int getTextWidth() { return textRenderer.getWidth(text); }
-    public int getTextHeight() { return textRenderer.fontHeight; }
+    public int getTextWidth() { return font.width(text); }
+    public int getTextHeight() { return font.lineHeight(); }
     public TextOverflowMode getOverflowMode() { return overflowMode; }
     public int getMaxWidth() { return maxWidth; }
     public int getMaxLines() { return maxLines; }
@@ -418,7 +421,7 @@ public class TextComponent implements Component {
     public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
     public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
     public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
-    public TextComponent setMinScale(float minScale) {this.minScale = Math.clamp(minScale, 0.1f, 1.0f); return this;}
+    public TextComponent setMinScale(float minScale) { this.minScale = clamp(minScale, 0.1f, 1.0f); return this; }
     public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
     public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
     public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }
@@ -471,7 +474,7 @@ public class TextComponent implements Component {
     }
 
     public TextComponent cloneWithNewText(String newText) {
-        TextComponent c = new TextComponent(newText, this.textRenderer);
+        TextComponent c = new TextComponent(newText, this.font);
         c.overflowMode = this.overflowMode;
         c.ellipsis = this.ellipsis;
         c.maxWidth = this.maxWidth;
@@ -509,5 +512,8 @@ public class TextComponent implements Component {
         return c;
     }
 
-    public void setTextRenderer(TextRenderer textRenderer) { this.textRenderer = textRenderer; }
+    public TextComponent setFontRenderer(FontRenderer font) {
+        this.font = font;
+        return this;
+    }
 }

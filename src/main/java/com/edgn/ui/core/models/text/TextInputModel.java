@@ -10,6 +10,7 @@ public interface TextInputModel extends Model {
     void setCaret(int index);
     int getSelectionStart();
     int getSelectionEnd();
+    int getSelectionAnchor();
     boolean hasSelection();
     void setSelection(int start, int end);
     void clearSelection();

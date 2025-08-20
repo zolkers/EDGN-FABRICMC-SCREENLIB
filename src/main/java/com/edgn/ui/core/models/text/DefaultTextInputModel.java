@@ -20,6 +20,7 @@ public class DefaultTextInputModel implements TextInputModel {
     @Override public void setCaret(int index) { caret = Math.clamp(index, 0, value.length()); }
     @Override public int getSelectionStart() { return hasSelection() ? Math.min(selAnchor, caret) : caret; }
     @Override public int getSelectionEnd() { return hasSelection() ? Math.max(selAnchor, caret) : caret; }
+    @Override public int getSelectionAnchor() { return selAnchor; }
     @Override public boolean hasSelection() { return selAnchor >= 0 && selAnchor != caret; }
     @Override public void setSelection(int start, int end) {
         start = Math.clamp(start, 0, value.length());
@@ -45,9 +46,9 @@ public class DefaultTextInputModel implements TextInputModel {
     @Override
     public void insert(String s) {
         if (s == null || s.isEmpty()) return;
-        int start = getSelectionStart();
-        int end = getSelectionEnd();
-        if (hasSelection()) { value.delete(start, end); caret = start; selAnchor = -1; }
+        if (hasSelection()) {
+            deleteSelection();
+        }
         int can = Math.clamp((long) maxLength - value.length(), 0, Integer.MAX_VALUE);
         if (can <= 0) return;
         String ins = s.length() > can ? s.substring(0, can) : s;
@@ -76,7 +77,7 @@ public class DefaultTextInputModel implements TextInputModel {
     public int wordLeft() {
         int i = Math.clamp((long) caret - 1, 0, value.length());
         while (i > 0 && isSep(value.charAt(i))) i--;
-        while (i > 0 && isWord(value.charAt(i - 1))) i--;
+        while (i > 0 && !Character.isWhitespace(value.charAt(i - 1))) i--;
         return i;
     }
 
@@ -84,8 +85,8 @@ public class DefaultTextInputModel implements TextInputModel {
     public int wordRight() {
         int i = Math.clamp(caret, 0, value.length());
         int n = value.length();
+        while (i < n && !Character.isWhitespace(value.charAt(i))) i++;
         while (i < n && isSep(value.charAt(i))) i++;
-        while (i < n && isWord(value.charAt(i))) i++;
         return i;
     }
 

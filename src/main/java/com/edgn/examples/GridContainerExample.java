@@ -60,6 +60,7 @@ public class GridContainerExample extends BaseTemplate {
 
     @Override
     protected BaseContainer createContent() {
+
         GridContainer grid = new GridContainer(uiSystem, 0, getHeaderHeight(), this.width, getContentHeight())
                 .setColumns(10)
                 .setScrollable(true)
@@ -68,7 +69,8 @@ public class GridContainerExample extends BaseTemplate {
 
         for (int i = 1; i <= 300; i++) {
             ButtonItem tile = new ButtonItem(uiSystem, 0, 0, 220, 80)
-                    .withText(new TextComponent("Card " + i).color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
+                    .withText(new TextComponent("Card " + i)
+                            .color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                     .addClass(
                             StyleKey.INFO,
                             StyleKey.TEXT_WHITE,

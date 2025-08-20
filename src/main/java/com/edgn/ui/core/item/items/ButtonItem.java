@@ -1,6 +1,7 @@
 package com.edgn.ui.core.item.items;
 
 import com.edgn.ui.core.container.components.TextComponent;
+import com.edgn.ui.core.container.components.font.FontRenderer;
 import com.edgn.ui.core.item.BaseItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
@@ -33,7 +34,7 @@ public class ButtonItem extends BaseItem {
 
     public ButtonItem withText(String text) {
         if (text != null && !text.isEmpty()) {
-            this.textComponent = new TextComponent(text, textRenderer)
+            this.textComponent = new TextComponent(text, fontRenderer)
                     .align(TextComponent.TextAlign.CENTER)
                     .verticalAlign(TextComponent.VerticalAlign.MIDDLE)
                     .truncate()
@@ -243,9 +244,11 @@ public class ButtonItem extends BaseItem {
     @Override public ButtonItem setConstraints(LayoutConstraints constraints) { super.setConstraints(constraints); return this; }
 
     @Override
-    public ButtonItem setTextRenderer(TextRenderer textRenderer) {
-        super.setTextRenderer(textRenderer);
-        if (this.textComponent != null) this.textComponent.setTextRenderer(textRenderer);
+    public ButtonItem setFontRenderer(FontRenderer fontRenderer) {
+        super.setFontRenderer(fontRenderer);
+        if (this.textComponent != null) {
+            this.textComponent.setFontRenderer(fontRenderer);
+        }
         return this;
     }
 }

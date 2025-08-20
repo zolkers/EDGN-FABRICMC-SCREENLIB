@@ -41,7 +41,5 @@ public class EdgnScreenLib implements ModInitializer {
 				}
 			});
 		}
-
-
 	}
 }

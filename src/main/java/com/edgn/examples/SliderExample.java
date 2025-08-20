@@ -35,6 +35,7 @@ public class SliderExample extends BaseTemplate {
                         StyleKey.ITEMS_STRETCH,
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_8,
+                        StyleKey.P_4,
                         StyleKey.M_5,
                         StyleKey.BG_BACKGROUND
                 );
@@ -49,13 +50,13 @@ public class SliderExample extends BaseTemplate {
                 .thumbColor(ColorUtils.NamedColor.IVORY.toInt())
                 .textBold()
                 .textRainbow()
-                .addClass(StyleKey.FLEX_BASIS_33);
+                .addClass(StyleKey.FLEX_BASIS_25);
 
         SliderItem<Float> floatSliderItem = new SliderItem<>(uiSystem, 0, 0, 160, 28, new FloatSliderModel())
-                .addClass(StyleKey.FLEX_BASIS_33);
+                .addClass(StyleKey.FLEX_BASIS_25);
 
         SliderItem<Double> doubleSliderItem = new SliderItem<>(uiSystem, 0, 0, 160, 28, new DoubleSliderModel())
-                .addClass(StyleKey.FLEX_BASIS_33);
+                .addClass(StyleKey.FLEX_BASIS_25);
 
         return content.addChild(intSliderItem).addChild(floatSliderItem).addChild(doubleSliderItem);
     }

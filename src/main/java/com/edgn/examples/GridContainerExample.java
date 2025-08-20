@@ -13,7 +13,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-public class GridContainerExample extends BaseTemplate {
+public final class GridContainerExample extends BaseTemplate {
 
     public GridContainerExample(Screen prev) {
         super(Text.literal("GridContainerExample"), prev);

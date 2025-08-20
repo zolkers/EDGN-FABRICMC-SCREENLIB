@@ -14,8 +14,8 @@ import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-public class SliderExample extends BaseTemplate {
-    protected SliderExample(Screen prevScreen) {
+public final class SliderExample extends BaseTemplate {
+    public SliderExample(Screen prevScreen) {
         super(Text.literal("Slider Example"), prevScreen);
     }
 

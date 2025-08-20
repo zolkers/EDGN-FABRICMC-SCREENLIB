@@ -12,8 +12,8 @@ import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-public class TextFieldExample extends BaseTemplate {
-    protected TextFieldExample(Screen prevScreen) {
+public final class TextFieldExample extends BaseTemplate {
+    public TextFieldExample(Screen prevScreen) {
         super(Text.literal("TextFieldExample"), prevScreen);
     }
 

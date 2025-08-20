@@ -11,8 +11,8 @@ import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-public class LabelExample extends BaseTemplate {
-    protected LabelExample(Screen prevScreen) {
+public final class LabelExample extends BaseTemplate {
+    public LabelExample(Screen prevScreen) {
         super(Text.literal("LabelExample"), prevScreen);
     }
 

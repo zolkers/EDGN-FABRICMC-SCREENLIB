@@ -32,19 +32,19 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.ITEMS_CENTER,
                         StyleKey.JUSTIFY_START,
                         StyleKey.GAP_3,
-                        StyleKey.P_3,
+                        StyleKey.P_1,
                         StyleKey.BG_SURFACE,
                         StyleKey.SHADOW_SM
                 );
 
         ButtonItem toList = new ButtonItem(uiSystem, 0, 0, 160, 28)
-                .withText(new TextComponent("List Container").rainbow())
+                .withText(new TextComponent("List Container").pulse())
                 .addClass(
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
-                        StyleKey.P_2,
                         StyleKey.HOVER_SCALE,
-                        StyleKey.FOCUS_RING
+                        StyleKey.FOCUS_RING,
+                        StyleKey.FLEX_BASIS_40
                 );
         toList.onClick(() -> MinecraftClient.getInstance().setScreen(new ListContainerExample(this)));
 
@@ -54,9 +54,9 @@ public class FlexContainerExample extends BaseTemplate {
                 .addClass(
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
-                        StyleKey.P_2,
                         StyleKey.HOVER_SCALE,
-                        StyleKey.FOCUS_RING
+                        StyleKey.FOCUS_RING,
+                        StyleKey.FLEX_BASIS_40
                 );
         toGrid.onClick(() -> MinecraftClient.getInstance().setScreen(new GridContainerExample(this)));
 

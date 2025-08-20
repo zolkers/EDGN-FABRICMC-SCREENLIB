@@ -20,7 +20,7 @@ public class FlexContainerExample extends BaseTemplate {
 
     @Override
     protected TemplateSettings templateSettings() {
-        return null;
+        return new TemplateSettings().setToDefault();
     }
 
     @Override
@@ -78,7 +78,7 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        content.addChild(button(uiSystem, "FlexField example", true)
+        content.addChild(button(uiSystem, "Text Field example", true)
                 .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
                 .onClick(() -> MinecraftClient.getInstance().setScreen(new TextFieldExample(this)))
         );
@@ -94,7 +94,19 @@ public class FlexContainerExample extends BaseTemplate {
 
     @Override
     protected BaseContainer createFooter() {
-        return null;
+        FlexContainer footer = new FlexContainer(uiSystem, 0, getContentHeight(), this.width, getFooterHeight())
+                .addClass(
+                        StyleKey.P_1,
+                        StyleKey.BG_BACKGROUND
+                );
+
+        footer.addChild(button(uiSystem, "Crash me", true)
+                .addClass(StyleKey.FLEX_BASIS_100, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
+                .onClick(() -> { int crash = 5 / 0; } )
+        );
+
+
+        return footer;
     }
 
 

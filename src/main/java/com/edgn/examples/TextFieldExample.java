@@ -48,7 +48,7 @@ public class TextFieldExample extends BaseTemplate {
         TextAreaItem tai = new TextAreaItem(uiSystem, 0, 0, 0, 100)
                 .withPlaceholder(new TextComponent("A simple text area"))
                 .textColor(ColorUtils.NamedColor.ANTIQUEWHITE.toInt())
-                .addClass(StyleKey.P_2, StyleKey.FLEX_BASIS_100);
+                .addClass(StyleKey.FLEX_BASIS_100);
 
         return content.addChild(field).addChild(tai);
     }

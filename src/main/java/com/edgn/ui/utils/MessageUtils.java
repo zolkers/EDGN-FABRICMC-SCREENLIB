@@ -4,6 +4,10 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
+/**
+ * This class isn't aimed to be used by the user, it's just utilities for the template to send messages client side
+ * @author EDGN
+ */
 @SuppressWarnings("unused")
 public class MessageUtils {
     public static final String MOD_TAG = Formatting.GOLD + "ESL" + Formatting.YELLOW + " >> " + Formatting.RESET;
@@ -11,12 +15,20 @@ public class MessageUtils {
     public static final String INFO_TAG = MOD_TAG + Formatting.GOLD + "INFO" + Formatting.YELLOW + " >> " + Formatting.GOLD;
     public static final String SUCCESS_TAG = MOD_TAG + Formatting.GREEN + "SUCCESS" + Formatting.DARK_GREEN + " >> " + Formatting.GREEN;
 
-    /**
-     * Sends an error in the player's chat hud ( ClientSide )
-     * @param error Any kind of error description ( commonly caught exceptions )
-     */
-    public static void sendErrorToPlayer(String error) {
+    public enum Level {
+        SUCCESS,
+        INFO,
+        ERROR
+    }
+
+    public static void sendMessageToPlayer(String message, Level level) {
         if(MinecraftClient.getInstance().player == null) return;
-        MinecraftClient.getInstance().player.sendMessage(Text.literal(ERROR_TAG + error), false);
+        String tag = "";
+        switch (level) {
+            case SUCCESS -> tag = SUCCESS_TAG;
+            case INFO -> tag = INFO_TAG;
+            case ERROR -> tag = ERROR_TAG;
+        }
+        MinecraftClient.getInstance().player.sendMessage(Text.literal(tag + message), false);
     }
 }

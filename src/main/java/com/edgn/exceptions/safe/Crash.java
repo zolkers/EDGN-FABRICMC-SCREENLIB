@@ -12,7 +12,7 @@ public final class Crash {
 
     public static void handle(Screen current, ScreenCrashException e, Runnable closeAction) {
         EdgnScreenLib.LOGGER.error(e.toString(), e);
-        MessageUtils.sendErrorToPlayer("An error occurred. Closing the screen: " + Formatting.GOLD + current.getTitle().getString());
+        MessageUtils.sendMessageToPlayer("An error occurred. Closing the screen: " + Formatting.GOLD + current.getTitle().getString(), MessageUtils.Level.SUCCESS);
         if (e.isFatal() && closeAction != null) {
             try {
                 closeAction.run();

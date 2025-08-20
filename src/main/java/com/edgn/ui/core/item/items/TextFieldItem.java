@@ -6,7 +6,7 @@ import com.edgn.ui.core.models.text.DefaultTextInputModel;
 import com.edgn.ui.core.models.text.TextInputModel;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import com.edgn.ui.utils.DrawingUtils;
@@ -73,7 +73,14 @@ public class TextFieldItem extends BaseItem {
     public TextFieldItem setPasswordMode(boolean enabled) { model.setPassword(enabled); return this; }
     public TextFieldItem setPasswordChar(char c) { model.setPasswordChar(c); return this; }
     public TextFieldItem setMaxLength(int max) { model.setMaxLength(max); return this; }
-    public TextFieldItem setTextSafetyMargin(int m) { textSafetyMargin = Math.max(0, m); if (textComponent!=null) textComponent.setSafetyMargin(textSafetyMargin); if (placeholderComponent!=null) placeholderComponent.setSafetyMargin(textSafetyMargin); return this; }
+
+    public TextFieldItem setTextSafetyMargin(int m) {
+        textSafetyMargin = Math.max(0, m);
+        if (textComponent!=null) textComponent.setSafetyMargin(textSafetyMargin);
+        if (placeholderComponent!=null) placeholderComponent.setSafetyMargin(textSafetyMargin);
+        return this;
+    }
+
     public TextFieldItem setSelectionColor(int argb) { selectionColor = argb; return this; }
 
     public String getText() { return model.getText(); }
@@ -116,30 +123,51 @@ public class TextFieldItem extends BaseItem {
     public boolean onMouseRelease(double mouseX, double mouseY, int button) { return isFocused(); }
 
     @Override
-    public void onMouseEnter() { if (!enabled) return; setState(ItemState.HOVERED); }
+    public void onMouseEnter() {
+        if (!enabled) return;
+        setState(ItemState.HOVERED);
+    }
 
     @Override
-    public void onMouseLeave() { if (!enabled) return; if (!isFocused()) setState(ItemState.NORMAL); }
+    public void onMouseLeave() {
+        if (!enabled) return;
+        if (!isFocused()) setState(ItemState.NORMAL);
+    }
 
     @Override
     public boolean onKeyPress(int key, int sc, int mods) {
         if (!enabled || !isFocused()) return false;
         boolean ctrl = (mods & GLFW.GLFW_MOD_CONTROL) != 0 || (mods & GLFW.GLFW_MOD_SUPER) != 0;
         boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
-        switch (key) {
-            case GLFW.GLFW_KEY_LEFT -> { moveCaret(ctrl ? model.wordLeft() : model.getCaret()-1, shift); return true; }
-            case GLFW.GLFW_KEY_RIGHT -> { moveCaret(ctrl ? model.wordRight() : model.getCaret()+1, shift); return true; }
-            case GLFW.GLFW_KEY_HOME -> { moveCaret(0, shift); return true; }
-            case GLFW.GLFW_KEY_END -> { moveCaret(model.length(), shift); return true; }
-            case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(ctrl); return true; }
-            case GLFW.GLFW_KEY_DELETE -> { model.delete(ctrl); return true; }
-            case GLFW.GLFW_KEY_A -> { if (ctrl) { model.setSelection(0, model.length()); return true; }}
-            case GLFW.GLFW_KEY_C -> { if (ctrl) { copySelection(); return true; } }
-            case GLFW.GLFW_KEY_X -> { if (ctrl) { cutSelection(); return true; } }
-            case GLFW.GLFW_KEY_V -> { if (ctrl) { pasteClipboard(); return true; } }
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> { return true; }
+        if (ctrl) {
+            switch (key) {
+                case GLFW.GLFW_KEY_LEFT  -> { moveCaret(model.wordLeft(),  shift); return true; }
+                case GLFW.GLFW_KEY_RIGHT -> { moveCaret(model.wordRight(), shift); return true; }
+                case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(true); return true; }
+                case GLFW.GLFW_KEY_DELETE    -> { model.delete(true);    return true; }
+                case GLFW.GLFW_KEY_A -> { model.setSelection(0, model.length()); return true; }
+                case GLFW.GLFW_KEY_C -> { copySelection();  return true; }
+                case GLFW.GLFW_KEY_X -> { cutSelection();   return true; }
+                case GLFW.GLFW_KEY_V -> { pasteClipboard(); return true; }
+                default -> {
+                    return false;
+                }
+            }
+        } else {
+            switch (key) {
+                case GLFW.GLFW_KEY_LEFT  -> { moveCaret(model.getCaret() - 1, shift); return true; }
+                case GLFW.GLFW_KEY_RIGHT -> { moveCaret(model.getCaret() + 1, shift); return true; }
+                case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(false); return true; }
+                case GLFW.GLFW_KEY_DELETE    -> { model.delete(false);    return true; }
+                case GLFW.GLFW_KEY_HOME      -> { moveCaret(0,              shift); return true; }
+                case GLFW.GLFW_KEY_END       -> { moveCaret(model.length(), shift); return true; }
+                case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> { return true; }
+                default -> {
+                    return false;
+                }
+            }
         }
-        return false;
+
     }
 
     @Override
@@ -152,9 +180,11 @@ public class TextFieldItem extends BaseItem {
     @Override
     public void render(DrawContext context) {
         if (!visible) return;
-        System.out.println("[render] TF model = '" + model.getText() + "'");
         updateConstraints();
-        int cx = getCalculatedX(), cy = getCalculatedY(), cw = getCalculatedWidth(), ch = getCalculatedHeight();
+        int cx = getCalculatedX();
+        int cy = getCalculatedY();
+        int cw = getCalculatedWidth();
+        int ch = getCalculatedHeight();
         int baseBg = getBgColor(); if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.SURFACE);
         int bg = backgroundForState(baseBg);
         int radius = getBorderRadius();
@@ -170,7 +200,8 @@ public class TextFieldItem extends BaseItem {
     }
 
     private void renderContent(DrawContext context, int cx, int cy, int cw, int ch) {
-        int x = cx + getPaddingLeft(), y = cy + getPaddingTop();
+        int x = cx + getPaddingLeft();
+        int y = cy + getPaddingTop();
         int w = Math.max(0, cw - getPaddingLeft() - getPaddingRight());
         int h = Math.max(0, ch - getPaddingTop() - getPaddingBottom());
         String display = currentDisplay();
@@ -202,13 +233,13 @@ public class TextFieldItem extends BaseItem {
         int cx = textXFor(display, x, model.getCaret());
         int caretColor = (textComponent != null && textComponent.hasCustomStyling())
                         ? (textComponent.getColor() | 0xFF000000)
-                        : (getComputedStyles().textColor | 0xFF000000);
+                        : (getComputedStyles().getTextColor() | 0xFF000000);
 
         DrawingUtils.drawVLine(ctx, cx, baseY - 1, baseY + textRenderer.fontHeight + 1, caretColor);
     }
 
     private int textXFor(String display, int x, int index) {
-        String sub = display.substring(0, Math.max(0, Math.min(index, display.length())));
+        String sub = display.substring(0, Math.clamp(index, 0, display.length()));
         return x + textRenderer.getWidth(sub);
     }
 
@@ -237,7 +268,7 @@ public class TextFieldItem extends BaseItem {
     }
 
     private void moveCaret(int newIndex, boolean extend) {
-        newIndex = Math.max(0, Math.min(newIndex, model.length()));
+        newIndex = Math.clamp(newIndex, 0, model.length());
         if (extend) {
             if (!model.hasSelection()) model.setSelection(model.getCaret(), newIndex);
             else model.setSelection(model.getSelectionStart(), newIndex);
@@ -248,6 +279,7 @@ public class TextFieldItem extends BaseItem {
         caretVisible = true; lastBlink = System.currentTimeMillis();
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     private int backgroundForState(int base) {
         return switch (getState()) {
             case HOVERED -> brighten(base, hasClass(StyleKey.HOVER_BRIGHTEN) ? 0.20f : 0.08f);
@@ -256,7 +288,10 @@ public class TextFieldItem extends BaseItem {
     }
 
     private int brighten(int color, float ratio) {
-        int a = (color >>> 24) & 0xFF, r = (color >>> 16) & 0xFF, g = (color >>> 8) & 0xFF, b = color & 0xFF;
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >>> 16) & 0xFF;
+        int g = (color >>> 8) & 0xFF;
+        int b = color & 0xFF;
         r = Math.min(255, Math.round(r + (255 - r) * ratio));
         g = Math.min(255, Math.round(g + (255 - g) * ratio));
         b = Math.min(255, Math.round(b + (255 - b) * ratio));
@@ -270,12 +305,16 @@ public class TextFieldItem extends BaseItem {
                     .align(TextComponent.TextAlign.LEFT)
                     .verticalAlign(TextComponent.VerticalAlign.MIDDLE)
                     .setSafetyMargin(textSafetyMargin)
-                    .color(getComputedStyles().textColor);
+                    .color(getComputedStyles().getTextColor());
         }
         return textComponent;
     }
 
-    public TextFieldItem textColorIfUnset(int color) { if (!ensureTextComponent().hasCustomStyling()) textComponent.color(color); return this; }
+    public TextFieldItem textColorIfUnset(int color) {
+        if (!ensureTextComponent().hasCustomStyling()) textComponent.color(color);
+        return this;
+    }
+
     @Override public TextFieldItem addClass(StyleKey... keys) { super.addClass(keys); return this; }
     @Override public TextFieldItem removeClass(StyleKey key) { super.removeClass(key); return this; }
     @Override public TextFieldItem onClick(Runnable handler) { super.onClick(handler); return this; }

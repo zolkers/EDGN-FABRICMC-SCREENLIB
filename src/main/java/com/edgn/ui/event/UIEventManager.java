@@ -8,6 +8,7 @@ import net.minecraft.client.MinecraftClient;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 public final class UIEventManager {
     private final Set<UIElement> elements = new HashSet<>();
 
@@ -76,7 +77,7 @@ public final class UIEventManager {
                 .filter(UIElement::isVisible)
                 .filter(UIElement::isRendered)
                 .sorted(Comparator.comparing(UIElement::getZIndex).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<UIElement> getElementsInLayer(ZIndex.Layer layer) {

@@ -21,4 +21,11 @@ public interface IElement {
     <T extends IElement> T setVisible(boolean visible);
     <T extends IElement> T setEnabled(boolean enabled);
     <T extends IElement> T setTextRenderer(TextRenderer textRenderer);
+
+    default int getChildInteractionOffsetX(UIElement child) {
+        return 0;
+    }
+    default int getChildInteractionOffsetY(UIElement child) {
+        return 0;
+    }
 }

@@ -15,7 +15,7 @@ public abstract class BaseItem extends UIElement {
         NORMAL, HOVERED, PRESSED, FOCUSED, DISABLED, ACTIVE
     }
 
-    public BaseItem(UIStyleSystem styleSystem, int x, int y, int width, int height) {
+    protected BaseItem(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
     }
 
@@ -71,14 +71,14 @@ public abstract class BaseItem extends UIElement {
 
     protected int getStateColor() {
         CSSStyleApplier.ComputedStyles styles = getComputedStyles();
-        int baseColor = styles.backgroundColor;
+        int baseColor = styles.getBackgroundColor();
         if (baseColor == 0) baseColor = styleSystem.getColor(StyleKey.PRIMARY);
 
         return switch (state) {
-            case HOVERED -> styles.hasHoverEffect ? brightenColor(baseColor, 20) : baseColor;
-            case PRESSED -> darkenColor(baseColor, 20);
-            case FOCUSED -> styles.hasFocusRing ? styleSystem.getColor(StyleKey.PRIMARY_LIGHT) : baseColor;
-            case DISABLED -> fadeColor(baseColor, 0.5f);
+            case HOVERED -> styles.isHasHoverEffect() ? brightenColor(baseColor, 20) : baseColor;
+            case PRESSED -> darkenColor(baseColor);
+            case FOCUSED -> styles.isHasFocusRing() ? styleSystem.getColor(StyleKey.PRIMARY_LIGHT) : baseColor;
+            case DISABLED -> fadeColor(baseColor);
             case ACTIVE -> brightenColor(baseColor, 30);
             default -> baseColor;
         };
@@ -112,16 +112,16 @@ public abstract class BaseItem extends UIElement {
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    protected int darkenColor(int color, int amount) {
-        int r = Math.max(0, ((color >> 16) & 0xFF) - amount);
-        int g = Math.max(0, ((color >> 8) & 0xFF) - amount);
-        int b = Math.max(0, (color & 0xFF) - amount);
+    protected int darkenColor(int color) {
+        int r = Math.max(0, ((color >> 16) & 0xFF) - 20);
+        int g = Math.max(0, ((color >> 8) & 0xFF) - 20);
+        int b = Math.max(0, (color & 0xFF) - 20);
         int a = (color >> 24) & 0xFF;
         return (a << 24) | (r << 16) | (g << 8) | b;
     }
 
-    protected int fadeColor(int color, float alpha) {
-        int a = (int) (((color >> 24) & 0xFF) * alpha);
+    protected int fadeColor(int color) {
+        int a = (int) (((color >> 24) & 0xFF) * (float) 0.5);
         return (a << 24) | (color & 0x00FFFFFF);
     }
 

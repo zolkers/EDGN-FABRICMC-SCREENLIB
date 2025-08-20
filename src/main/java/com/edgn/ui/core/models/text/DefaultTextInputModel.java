@@ -9,17 +9,34 @@ public class DefaultTextInputModel implements TextInputModel {
     private char passwordChar = '•';
 
     @Override public String getText() { return value.toString(); }
-    @Override public void setText(String text) { value.setLength(0); if (text!=null) value.append(text); caret = Math.min(caret, value.length()); selAnchor = -1; }
+    @Override public void setText(String text) {
+        value.setLength(0);
+        if (text != null) value.append(text);
+        caret = Math.clamp(caret, 0, value.length());
+        selAnchor = -1;
+    }
     @Override public int length() { return value.length(); }
     @Override public int getCaret() { return caret; }
-    @Override public void setCaret(int index) { caret = Math.max(0, Math.min(index, value.length())); }
-    @Override public int getSelectionStart() { return hasSelection()? Math.min(selAnchor, caret): caret; }
-    @Override public int getSelectionEnd() { return hasSelection()? Math.max(selAnchor, caret): caret; }
+    @Override public void setCaret(int index) { caret = Math.clamp(index, 0, value.length()); }
+    @Override public int getSelectionStart() { return hasSelection() ? Math.min(selAnchor, caret) : caret; }
+    @Override public int getSelectionEnd() { return hasSelection() ? Math.max(selAnchor, caret) : caret; }
     @Override public boolean hasSelection() { return selAnchor >= 0 && selAnchor != caret; }
-    @Override public void setSelection(int start, int end) { start = Math.max(0, Math.min(start, value.length())); end = Math.max(0, Math.min(end, value.length())); selAnchor = start; caret = end; }
+    @Override public void setSelection(int start, int end) {
+        start = Math.clamp(start, 0, value.length());
+        end   = Math.clamp(end,   0, value.length());
+        selAnchor = start;
+        caret = end;
+    }
     @Override public void clearSelection() { selAnchor = -1; }
     @Override public int getMaxLength() { return maxLength; }
-    @Override public void setMaxLength(int max) { maxLength = Math.max(0, max); if (value.length() > maxLength) { value.setLength(maxLength); caret = Math.min(caret, maxLength); selAnchor = -1; } }
+    @Override public void setMaxLength(int max) {
+        maxLength = Math.clamp(max, 0, Integer.MAX_VALUE);
+        if (value.length() > maxLength) {
+            value.setLength(maxLength);
+            caret = Math.clamp(caret, 0, maxLength);
+            selAnchor = -1;
+        }
+    }
     @Override public boolean isPassword() { return password; }
     @Override public void setPassword(boolean enabled) { password = enabled; }
     @Override public char getPasswordChar() { return passwordChar; }
@@ -31,7 +48,7 @@ public class DefaultTextInputModel implements TextInputModel {
         int start = getSelectionStart();
         int end = getSelectionEnd();
         if (hasSelection()) { value.delete(start, end); caret = start; selAnchor = -1; }
-        int can = Math.max(0, maxLength - value.length());
+        int can = Math.clamp((long) maxLength - value.length(), 0, Integer.MAX_VALUE);
         if (can <= 0) return;
         String ins = s.length() > can ? s.substring(0, can) : s;
         value.insert(caret, ins);
@@ -57,7 +74,7 @@ public class DefaultTextInputModel implements TextInputModel {
 
     @Override
     public int wordLeft() {
-        int i = Math.max(0, Math.min(caret - 1, value.length()));
+        int i = Math.clamp((long) caret - 1, 0, value.length());
         while (i > 0 && isSep(value.charAt(i))) i--;
         while (i > 0 && isWord(value.charAt(i - 1))) i--;
         return i;
@@ -65,7 +82,7 @@ public class DefaultTextInputModel implements TextInputModel {
 
     @Override
     public int wordRight() {
-        int i = Math.max(0, Math.min(caret, value.length()));
+        int i = Math.clamp(caret, 0, value.length());
         int n = value.length();
         while (i < n && isSep(value.charAt(i))) i++;
         while (i < n && isWord(value.charAt(i))) i++;
@@ -73,12 +90,13 @@ public class DefaultTextInputModel implements TextInputModel {
     }
 
     private void deleteSelection() {
-        int s = getSelectionStart(), e = getSelectionEnd();
+        int s = getSelectionStart();
+        int e = getSelectionEnd();
         value.delete(s, e);
         caret = s;
         selAnchor = -1;
     }
 
-    private boolean isWord(char c) { return Character.isLetterOrDigit(c) || c=='_' || c=='-'; }
+    private boolean isWord(char c) { return Character.isLetterOrDigit(c) || c == '_' || c == '-'; }
     private boolean isSep(char c) { return !isWord(c) && !Character.isWhitespace(c); }
 }

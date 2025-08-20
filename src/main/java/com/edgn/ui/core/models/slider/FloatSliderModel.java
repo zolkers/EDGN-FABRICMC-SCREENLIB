@@ -1,12 +1,22 @@
 package com.edgn.ui.core.models.slider;
 
 public class FloatSliderModel implements SliderModel<Float> {
-    private float value, min, max, step;
+    private float value;
+    private float min;
+    private float max;
+    private float step;
 
     public FloatSliderModel() { this(0f, 0f, 1f, 0.01f); }
     public FloatSliderModel(float value, float min, float max, float step) {
-        if (max < min) { float t=min; min=max; max=t; }
-        this.min=min; this.max=max; this.step=Math.max(1e-6f, step);
+        if (max < min) {
+            float t=min;
+            min=max;
+            max=t;
+
+        }
+        this.min=min;
+        this.max=max;
+        this.step=Math.max(Float.MAX_VALUE, step);
         set(value);
     }
 
@@ -23,24 +33,25 @@ public class FloatSliderModel implements SliderModel<Float> {
     @Override public Float step(){ return step; }
     @Override public void setStep(Float s){ this.step=Math.max(1e-6f, s); set(value); }
 
-    @Override public Float clampSnap(Float v){
-        float x = Math.max(min, Math.min(max, v));
+    @Override
+    public Float clampSnap(Float v) {
+        float x = Math.clamp(v, min, max);
         float steps = Math.round((x - min) / step);
         x = min + steps * step;
-        if (x < min) x = min;
-        if (x > max) x = max;
-        return x;
+        return Math.clamp(x, min, max);
     }
 
-    @Override public Float ratioToValue(double t){
-        t = Math.max(0, Math.min(1, t));
-        float x = (float)(min + t * (max - min));
+    @Override
+    public Float ratioToValue(double t) {
+        t = Math.clamp(t, 0.0, 1.0);
+        float x = (float) (min + t * (max - min));
         return clampSnap(x);
     }
 
-    @Override public double valueToRatio(Float v){
-        float x = Math.max(min, Math.min(max, v));
-        float usable = Math.max(1e-9f, (max - min));
+    @Override
+    public double valueToRatio(Float v) {
+        float x = Math.clamp(v, min, max);
+        float usable = Math.clamp(max - min, 1e-9f, Float.MAX_VALUE);
         return (x - min) / (double) usable;
     }
 }

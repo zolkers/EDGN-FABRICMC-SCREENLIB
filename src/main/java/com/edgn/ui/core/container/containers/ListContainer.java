@@ -4,8 +4,6 @@ import com.edgn.ui.core.UIElement;
 import com.edgn.ui.core.item.items.ScrollbarItem;
 import com.edgn.ui.css.UIStyleSystem;
 
-import java.util.List;
-
 @SuppressWarnings("unused")
 public class ListContainer extends ScrollContainer {
 
@@ -24,7 +22,7 @@ public class ListContainer extends ScrollContainer {
 
     @Override
     protected void layoutChildren() {
-        List<UIElement> kids = getChildren();
+        var kids = getChildren();
         if (kids.isEmpty()) return;
 
         int contentX = getViewportX();
@@ -33,60 +31,81 @@ public class ListContainer extends ScrollContainer {
         int vh = getViewportHeight();
         int gap = getGap();
 
-        int xCursor = contentX;
-        int yCursor = contentY;
-
         if (orientation == Orientation.VERTICAL) {
-            int prevMB = 0;
-            for (UIElement child : kids) {
-                if (!child.isVisible()) continue;
-                if (child instanceof ScrollbarItem) continue;
-
-                int mt = child.getMarginTop();
-                int mb = child.getMarginBottom();
-                int ml = child.getMarginLeft();
-                int mr = child.getMarginRight();
-
-                yCursor += (yCursor == contentY ? 0 : gap) + prevMB + mt;
-
-                int cx = contentX + ml;
-                int cw = Math.max(0, vw - ml - mr);
-
-                child.setX(cx);
-                child.setY(yCursor);
-                child.setWidth(cw);
-                child.updateConstraints();
-                child.getInteractionBounds();
-
-                yCursor += child.getCalculatedHeight();
-                prevMB = mb;
-            }
+            layoutVertical(kids, contentX, contentY, vw, vh, gap);
         } else {
-            int prevMR = 0;
-            for (UIElement child : kids) {
-                if (!child.isVisible()) continue;
-                if (child instanceof ScrollbarItem) continue;
-
-                int mt = child.getMarginTop();
-                int mb = child.getMarginBottom();
-                int ml = child.getMarginLeft();
-                int mr = child.getMarginRight();
-
-                xCursor += (xCursor == contentX ? 0 : gap) + prevMR + ml;
-
-                int cy = contentY + mt;
-                int ch = Math.max(0, vh - mt - mb);
-
-                child.setX(xCursor);
-                child.setY(cy);
-                child.setHeight(ch);
-                child.updateConstraints();
-                child.getInteractionBounds();
-
-                xCursor += child.getCalculatedWidth();
-                prevMR = mr;
-            }
+            layoutHorizontal(kids, contentX, contentY, vw, vh, gap);
         }
     }
+
+
+    private boolean isNotLayoutCandidate(UIElement c) {
+        return c == null || !c.isVisible() || c instanceof ScrollbarItem;
+    }
+
+    private void layoutVertical(java.util.List<UIElement> kids, int contentX, int contentY, int vw, int vh, int gap) {
+        int yCursor = contentY;
+        int prevMB = 0;
+
+        for (UIElement child : kids) {
+            if (isNotLayoutCandidate(child)) continue;
+
+            int mt = child.getMarginTop();
+            int mb = child.getMarginBottom();
+            int ml = child.getMarginLeft();
+            int mr = child.getMarginRight();
+
+            yCursor += (yCursor == contentY ? 0 : gap) + prevMB + mt;
+
+            int cx = contentX + ml;
+            int cw = Math.clamp((long) vw - ml - mr, 0, Integer.MAX_VALUE);
+
+            placeAndMeasureVertical(child, cx, yCursor, cw);
+
+            yCursor += child.getCalculatedHeight();
+            prevMB = mb;
+        }
+    }
+
+    private void layoutHorizontal(java.util.List<UIElement> kids, int contentX, int contentY, int vw, int vh, int gap) {
+        int xCursor = contentX;
+        int prevMR = 0;
+
+        for (UIElement child : kids) {
+            if (isNotLayoutCandidate(child)) continue;
+
+            int mt = child.getMarginTop();
+            int mb = child.getMarginBottom();
+            int ml = child.getMarginLeft();
+            int mr = child.getMarginRight();
+
+            xCursor += (xCursor == contentX ? 0 : gap) + prevMR + ml;
+
+            int cy = contentY + mt;
+            int ch = Math.clamp((long) vh - mt - mb, 0, Integer.MAX_VALUE);
+
+            placeAndMeasureHorizontal(child, xCursor, cy, ch);
+
+            xCursor += child.getCalculatedWidth();
+            prevMR = mr;
+        }
+    }
+
+    private void placeAndMeasureVertical(UIElement child, int x, int y, int width) {
+        child.setX(x);
+        child.setY(y);
+        child.setWidth(width);
+        child.updateConstraints();
+        child.getInteractionBounds();
+    }
+
+    private void placeAndMeasureHorizontal(UIElement child, int x, int y, int height) {
+        child.setX(x);
+        child.setY(y);
+        child.setHeight(height);
+        child.updateConstraints();
+        child.getInteractionBounds();
+    }
+
 
 }

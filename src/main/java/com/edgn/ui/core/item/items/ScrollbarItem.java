@@ -5,6 +5,7 @@ import com.edgn.ui.core.models.scroll.ScrollbarModel;
 import com.edgn.ui.css.UIStyleSystem;
 import net.minecraft.client.gui.DrawContext;
 
+@SuppressWarnings("unused")
 public class ScrollbarItem extends BaseItem {
 
     public enum Orientation { VERTICAL, HORIZONTAL }
@@ -31,7 +32,11 @@ public class ScrollbarItem extends BaseItem {
 
     public ScrollbarItem setThickness(int px) { this.thickness = Math.max(4, px); return this; }
     public ScrollbarItem setPadding(int px) { this.padding = Math.max(0, px); return this; }
-    public ScrollbarItem setColors(int track, int thumb, int thumbHover) { this.trackColor = track; this.thumbColor = thumb; this.thumbHoverColor = thumbHover; return this; }
+    public ScrollbarItem setColors(int track, int thumb, int thumbHover) {
+        this.trackColor = track; this.thumbColor = thumb;
+        this.thumbHoverColor = thumbHover;
+        return this;
+    }
 
     @Override
     public void render(DrawContext context) {
@@ -47,7 +52,10 @@ public class ScrollbarItem extends BaseItem {
         int vw = getWidth();
         int vh = getHeight();
 
-        int x, y, w, h;
+        int x;
+        int y;
+        int w;
+        int h;
         if (orientation == Orientation.VERTICAL) {
             x = vx + vw - thickness - padding;
             y = vy + padding;
@@ -67,16 +75,22 @@ public class ScrollbarItem extends BaseItem {
         int scroll = orientation == Orientation.VERTICAL ? model.getScrollY() : model.getScrollX();
         if (content <= 0 || view <= 0) return;
 
-        int trackX1 = x, trackY1 = y, trackX2 = x + w, trackY2 = y + h;
+        int trackX1 = x;
+        int trackY1 = y;
+        int trackX2 = x + w;
+        int trackY2 = y + h;
         context.fill(trackX1, trackY1, trackX2, trackY2, trackColor);
 
         double frac = Math.min(1.0, (double) view / (double) content);
         int span = orientation == Orientation.VERTICAL ? h : w;
         int thumbLen = Math.max(20, (int) Math.round(frac * span));
         int maxScroll = Math.max(1, content - view);
-        double posFrac = Math.max(0.0, Math.min(1.0, (double) scroll / (double) maxScroll));
+        double posFrac = Math.clamp(scroll / Math.max(1.0, maxScroll), 0.0, 1.0);
 
-        int thumbX1, thumbY1, thumbX2, thumbY2;
+        int thumbX1;
+        int thumbY1;
+        int thumbX2;
+        int thumbY2;
         if (orientation == Orientation.VERTICAL) {
             int usable = span - thumbLen;
             int ty1 = y + (int) Math.round(posFrac * usable);
@@ -106,7 +120,8 @@ public class ScrollbarItem extends BaseItem {
         double frac = Math.min(1.0, (double) view / (double) content);
         int thumbLen = Math.max(20, (int) Math.round(frac * span));
         int usable = Math.max(1, span - thumbLen);
-        double posFrac = Math.max(0.0, Math.min(1.0, (double) scroll / (double) maxScroll));
+        double denom   = Math.max(1.0, maxScroll); // avoid division by 0
+        double posFrac = Math.clamp( scroll / denom, 0.0, 1.0);
         int thumbPos = (int) Math.round(posFrac * usable);
 
         int m = (int) (orientation == Orientation.VERTICAL ? mouseY - getCalculatedY() : mouseX - getCalculatedX());

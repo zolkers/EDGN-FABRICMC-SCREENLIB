@@ -15,8 +15,6 @@ import net.minecraft.text.Text;
 
 import java.util.Calendar;
 
-//TODO: make a tree hierarchy for the screens maybe
-
 /**
  * BaseTemplate is the main template which is recommended to use.
  * If you ever want to create your own template, You can, always make sure to

@@ -197,7 +197,7 @@ public class FlexContainer extends BaseContainer {
             used += (i == 0 ? metrics.get(i).withMargins() : gap + metrics.get(i).withMargins());
             UIElement n = metrics.get(i).node();
             totalGrow += Math.max(0, n.getFlexGrow());
-            totalShrinkWeighted += Math.max(0, n.getComputedStyles().flexShrink) * (double) metrics.get(i).basis();
+            totalShrinkWeighted += Math.max(0, n.getComputedStyles().getFlexShrink()) * (double) metrics.get(i).basis();
         }
 
         int remaining = maxMain - used;
@@ -206,13 +206,13 @@ public class FlexContainer extends BaseContainer {
         if (remaining > 0 && totalGrow > 0) {
             for (int i = 0; i < metrics.size(); i++) {
                 UIElement n = metrics.get(i).node();
-                int delta = (int) Math.floor((double) remaining * Math.max(0, n.getFlexGrow()) / (double) totalGrow);
+                int delta = (int) Math.floor((double) remaining * Math.max(0, n.getFlexGrow()) / totalGrow);
                 totals[i] = metrics.get(i).withMargins() + delta;
             }
         } else if (remaining < 0 && totalShrinkWeighted > 0) {
             for (int i = 0; i < metrics.size(); i++) {
                 UIElement n = metrics.get(i).node();
-                double shrink = Math.max(0, n.getComputedStyles().flexShrink);
+                double shrink = Math.max(0, n.getComputedStyles().getFlexShrink());
                 ItemBox m = metrics.get(i);
                 int delta = (int) Math.floor(remaining * (shrink * m.basis()) / totalShrinkWeighted);
                 int minAllowed = m.mStart() + m.mEnd();
@@ -355,7 +355,7 @@ public class FlexContainer extends BaseContainer {
     }
 
     private int resolveFlexBasis(UIElement child, int maxMain, boolean row) {
-        int basis = child.getComputedStyles().flexBasis;
+        int basis = child.getComputedStyles().getFlexBasis();
         if (basis > 0 && basis <= 100) {
             return Math.max(0, (int) Math.floor((basis / 100.0) * maxMain));
         }

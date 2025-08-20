@@ -1,5 +1,6 @@
 package com.edgn.ui.layout;
 
+@SuppressWarnings("unused")
 public class ZIndex implements Comparable<ZIndex> {
     public static final ZIndex BACKGROUND = new ZIndex(Layer.BACKGROUND, 0);
     public static final ZIndex CONTENT = new ZIndex(Layer.CONTENT, 0);
@@ -82,27 +83,27 @@ public class ZIndex implements Comparable<ZIndex> {
                            layer, priority, getValue());
     }
 
-    public static ZIndex background(int priority) {
+    public static ZIndex backgroundIndex(int priority) {
         return new ZIndex(Layer.BACKGROUND, priority);
     }
 
-    public static ZIndex content(int priority) {
+    public static ZIndex contentIndex(int priority) {
         return new ZIndex(Layer.CONTENT, priority);
     }
 
-    public static ZIndex overlay(int priority) {
+    public static ZIndex overlayIndex(int priority) {
         return new ZIndex(Layer.OVERLAY, priority);
     }
 
-    public static ZIndex modal(int priority) {
+    public static ZIndex modalIndex(int priority) {
         return new ZIndex(Layer.MODAL, priority);
     }
 
-    public static ZIndex tooltip(int priority) {
+    public static ZIndex tooltipIndex(int priority) {
         return new ZIndex(Layer.TOOLTIP, priority);
     }
 
-    public static ZIndex debug(int priority) {
+    public static ZIndex debugIndex(int priority) {
         return new ZIndex(Layer.DEBUG, priority);
     }
 }

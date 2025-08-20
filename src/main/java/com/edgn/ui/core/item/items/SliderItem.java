@@ -83,17 +83,19 @@ public class SliderItem<N extends Number> extends BaseItem {
         int cw = getCalculatedWidth();
         int ch = getCalculatedHeight();
 
-        int labelW = cw, labelH = ch;
-        int trackX = cx, trackY = cy, trackW = cw, trackH = trackHeight;
+        int labelW = cw;
+        int labelH = ch;
+        int trackX = cx;
+        int trackY = cy;
+        int trackW = cw;
+        int trackH = trackHeight;
 
         switch (valuePosition) {
             case TOP -> {
                 labelH = Math.max(0, ch - trackHeight - gapBetweenTrackAndLabel);
                 trackY = cy + labelH + gapBetweenTrackAndLabel;
             }
-            case BOTTOM -> {
-                labelH = Math.max(0, ch - trackHeight - gapBetweenTrackAndLabel);
-            }
+            case BOTTOM -> labelH = Math.max(0, ch - trackHeight - gapBetweenTrackAndLabel);
             case LEFT -> {
                 labelW = Math.max(40, (int)(cw * 0.35f));
                 trackX = cx + labelW + gapBetweenTrackAndLabel;
@@ -110,7 +112,8 @@ public class SliderItem<N extends Number> extends BaseItem {
         DrawingUtils.drawRoundedRect(context, trackX, trackY, trackW, trackH, trackRadius, trackColor);
 
         double t = model.valueToRatio(model.get());
-        t = Math.max(0.0, Math.min(1.0, t));
+        t = Math.clamp(t, 0.0, 1.0);
+
         int filledW = (int) Math.round(t * trackW);
         if (filledW > 0) {
             DrawingUtils.drawRoundedRect(context, trackX, trackY, filledW, trackH, trackRadius, fillColor);
@@ -122,14 +125,15 @@ public class SliderItem<N extends Number> extends BaseItem {
         DrawingUtils.drawRoundedRect(context, thumbX, thumbY, thumbSize, thumbSize, thumbR, thumbColor);
 
         refreshLabel();
-        int labelX = cx, labelY = cy;
+        int labelX = cx;
+        int labelY = cy;
         int labelMaxW = (valuePosition == ValuePosition.LEFT || valuePosition == ValuePosition.RIGHT) ? labelW : cw;
         int labelMaxH = (valuePosition == ValuePosition.TOP || valuePosition == ValuePosition.BOTTOM) ? labelH : ch;
 
         switch (valuePosition) {
-            case TOP, LEFT -> {}
             case BOTTOM -> labelY = cy + trackHeight + gapBetweenTrackAndLabel;
             case RIGHT -> labelX = cx + cw - labelW;
+            default -> {/* other cases simply dont need recalc */}
         }
         valueText.render(context, labelX, labelY, labelMaxW, labelMaxH);
     }
@@ -173,8 +177,8 @@ public class SliderItem<N extends Number> extends BaseItem {
             trackW = Math.max(1, cw - labelW - gapBetweenTrackAndLabel);
         }
 
-        double t = (mouseX - trackX) / (double) trackW;
-        t = Math.max(0.0, Math.min(1.0, t));
+        double t = (mouseX - trackX) / trackW;
+        t = Math.clamp(t, 0.0, 1.0);
         model.setFromRatio(t);
         refreshLabel();
     }

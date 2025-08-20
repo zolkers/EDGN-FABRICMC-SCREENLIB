@@ -8,6 +8,7 @@ import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
+import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -37,9 +38,8 @@ public class FlexContainerExample extends BaseTemplate {
                 );
 
         ButtonItem toList = new ButtonItem(uiSystem, 0, 0, 160, 28)
-                .withText(new TextComponent("List Container"))
+                .withText(new TextComponent("List Container").rainbow())
                 .addClass(
-                        StyleKey.SECONDARY,
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.P_2,
@@ -49,9 +49,9 @@ public class FlexContainerExample extends BaseTemplate {
         toList.onClick(() -> MinecraftClient.getInstance().setScreen(new ListContainerExample(this)));
 
         ButtonItem toGrid = new ButtonItem(uiSystem, 0, 0, 160, 28)
-                .withText(new TextComponent("Grid Container"))
+                .withText(new TextComponent("Grid Container")
+                        .color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
-                        StyleKey.PRIMARY,
                         StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.P_2,
@@ -78,12 +78,12 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        content.addChild(button(uiSystem, "Text Field example", true)
+        content.addChild(button(uiSystem, "Text Field example")
                 .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
                 .onClick(() -> MinecraftClient.getInstance().setScreen(new TextFieldExample(this)))
         );
 
-        content.addChild(button(uiSystem, "Slider example", true)
+        content.addChild(button(uiSystem, "Slider example")
                 .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
                 .onClick(() -> MinecraftClient.getInstance().setScreen(new SliderExample(this)))
         );
@@ -93,6 +93,7 @@ public class FlexContainerExample extends BaseTemplate {
 
 
     @Override
+    @SuppressWarnings({"ALL", "unused"})
     protected BaseContainer createFooter() {
         FlexContainer footer = new FlexContainer(uiSystem, 0, getContentHeight(), this.width, getFooterHeight())
                 .addClass(
@@ -100,18 +101,17 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.BG_BACKGROUND
                 );
 
-        footer.addChild(button(uiSystem, "Crash me", true)
+        footer.addChild(button(uiSystem, "Crash me")
                 .addClass(StyleKey.FLEX_BASIS_100, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
                 .onClick(() -> { int crash = 5 / 0; } )
         );
-
 
         return footer;
     }
 
 
-    private ButtonItem button(UIStyleSystem ui, String label, boolean scaleOnHover) {
-        ButtonItem b = new ButtonItem(ui, 0, 0, 220, 48)
+    private ButtonItem button(UIStyleSystem ui, String label) {
+        return new ButtonItem(ui, 0, 0, 220, 48)
                 .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR))
                 .addClass(
                         StyleKey.PRIMARY,
@@ -119,11 +119,10 @@ public class FlexContainerExample extends BaseTemplate {
                         StyleKey.ROUNDED_LG,
                         StyleKey.P_3,
                         StyleKey.SHADOW_MD,
-                        StyleKey.HOVER_BRIGHTEN
+                        StyleKey.HOVER_BRIGHTEN,
+                        StyleKey.HOVER_SCALE,
+                        StyleKey.BG_SURFACE,
+                        StyleKey.FOCUS_RING
                 );
-
-        if (scaleOnHover) b.addClass(StyleKey.HOVER_SCALE, StyleKey.BG_SURFACE, StyleKey.FOCUS_RING);
-
-        return b;
     }
 }

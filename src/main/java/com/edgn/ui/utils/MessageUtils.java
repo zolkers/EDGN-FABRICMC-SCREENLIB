@@ -21,6 +21,8 @@ public class MessageUtils {
         ERROR
     }
 
+    private MessageUtils() { /* utility class */ }
+
     public static void sendMessageToPlayer(String message, Level level) {
         if(MinecraftClient.getInstance().player == null) return;
         String tag = "";

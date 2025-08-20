@@ -1,5 +1,6 @@
 package com.edgn.examples;
 
+import com.edgn.EdgnScreenLib;
 import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.container.BaseContainer;
 import com.edgn.ui.core.container.containers.FlexContainer;
@@ -8,6 +9,7 @@ import com.edgn.ui.core.item.items.ButtonItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
+import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -37,7 +39,7 @@ public class ListContainerExample extends BaseTemplate {
                 );
 
         ButtonItem back = new ButtonItem(uiSystem, 0, 0, 120, 28)
-                .withText(new TextComponent("Back"))
+                .withText(new TextComponent("Back").color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
                         StyleKey.SECONDARY,
                         StyleKey.TEXT_WHITE,
@@ -68,7 +70,7 @@ public class ListContainerExample extends BaseTemplate {
         for (int i = 1; i <= 30; i++) {
             int finalI = i;
             ButtonItem item = new ButtonItem(uiSystem, 0, 0, this.width - 24, 44)
-                    .withText(new TextComponent("Item " + i))
+                    .withText(new TextComponent("Item " + i).color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                     .addClass(
                             StyleKey.PRIMARY,
                             StyleKey.TEXT_WHITE,
@@ -78,7 +80,7 @@ public class ListContainerExample extends BaseTemplate {
                             StyleKey.HOVER_SCALE,
                             StyleKey.FOCUS_RING,
                             StyleKey.HOVER_BRIGHTEN
-                    ).onClick(() -> System.out.println(finalI));
+                    ).onClick(() -> EdgnScreenLib.LOGGER.info(String.valueOf(finalI)));
             list.addChild(item);
         }
         return list;

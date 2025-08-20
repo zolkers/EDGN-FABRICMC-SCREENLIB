@@ -3,7 +3,7 @@ package com.edgn.ui.core;
 import com.edgn.ui.css.CSSStyleApplier;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import net.minecraft.client.MinecraftClient;
@@ -16,7 +16,10 @@ import java.util.Set;
 
 @SuppressWarnings({"unused", "UnusedReturnValue"})
 public abstract class UIElement implements IElement {
-    protected int x, y, width, height;
+    protected int x;
+    protected int y;
+    protected int width;
+    protected int height;
     protected final Set<StyleKey> classes = new HashSet<>();
     protected final UIStyleSystem styleSystem;
     protected boolean visible = true;
@@ -28,7 +31,10 @@ public abstract class UIElement implements IElement {
     protected TextRenderer textRenderer = MinecraftClient.getInstance().textRenderer;
     protected UIElement parent = null;
 
-    protected int calculatedX, calculatedY, calculatedWidth, calculatedHeight;
+    protected int calculatedX;
+    protected int calculatedY;
+    protected int calculatedWidth;
+    protected int calculatedHeight;
     protected boolean constraintsDirty = true;
     protected InteractionBounds interactionBounds;
 
@@ -47,7 +53,7 @@ public abstract class UIElement implements IElement {
     private String stateKey;
 
 
-    public UIElement(UIStyleSystem styleSystem, int x, int y, int width, int height) {
+    protected UIElement(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         this.styleSystem = styleSystem;
         this.x = x; this.y = y; this.width = width; this.height = height;
         this.calculatedX = x; this.calculatedY = y;
@@ -88,8 +94,8 @@ public abstract class UIElement implements IElement {
             int availableWidth = parent.getCalculatedWidth() - getMarginLeft() - getMarginRight();
             int availableHeight = parent.getCalculatedHeight() - getMarginTop() - getMarginBottom();
 
-            calculatedWidth = Math.min(calculatedWidth, Math.max(0, availableWidth));
-            calculatedHeight = Math.min(calculatedHeight, Math.max(0, availableHeight));
+            calculatedWidth  = Math.clamp(calculatedWidth,  0, Math.max(0, availableWidth));
+            calculatedHeight = Math.clamp(calculatedHeight, 0, Math.max(0, availableHeight));
         }
 
         if (constraints != null) {
@@ -139,9 +145,6 @@ public abstract class UIElement implements IElement {
         interactionBounds = new InteractionBounds(clipX, clipY, clipWidth, clipHeight);
     }
 
-    protected int getChildInteractionOffsetX(UIElement child) { return 0; }
-    protected int getChildInteractionOffsetY(UIElement child) { return 0; }
-
     public boolean ignoresParentScroll() { return ignoreParentScroll; }
     public UIElement setIgnoreParentScroll(boolean value) { this.ignoreParentScroll = value; return this; }
 
@@ -176,10 +179,25 @@ public abstract class UIElement implements IElement {
         if (focused) styleSystem.getEventManager().setFocus(null);
     }
 
-    public int getCalculatedX() { if (constraintsDirty) updateConstraints(); return calculatedX; }
-    public int getCalculatedY() { if (constraintsDirty) updateConstraints(); return calculatedY; }
-    public int getCalculatedWidth() { if (constraintsDirty) updateConstraints(); return calculatedWidth; }
-    public int getCalculatedHeight() { if (constraintsDirty) updateConstraints(); return calculatedHeight; }
+    public int getCalculatedX() {
+        if (constraintsDirty) updateConstraints();
+        return calculatedX;
+    }
+
+    public int getCalculatedY() {
+        if (constraintsDirty) updateConstraints();
+        return calculatedY;
+
+    }
+    public int getCalculatedWidth() {
+        if (constraintsDirty) updateConstraints();
+        return calculatedWidth;
+
+    }
+    public int getCalculatedHeight() {
+        if (constraintsDirty) updateConstraints();
+        return calculatedHeight;
+    }
 
     public InteractionBounds getInteractionBounds() {
         updateConstraints();
@@ -222,17 +240,17 @@ public abstract class UIElement implements IElement {
     @Override
     public <T extends IElement> T setZIndex(int intZIndex) {
         if (intZIndex < ZIndex.Layer.BACKGROUND.getBaseValue()) {
-            this.zIndex = ZIndex.background(intZIndex - ZIndex.Layer.BACKGROUND.getBaseValue());
+            this.zIndex = ZIndex.backgroundIndex(intZIndex - ZIndex.Layer.BACKGROUND.getBaseValue());
         } else if (intZIndex < ZIndex.Layer.CONTENT.getBaseValue()) {
-            this.zIndex = ZIndex.content(intZIndex);
+            this.zIndex = ZIndex.contentIndex(intZIndex);
         } else if (intZIndex < ZIndex.Layer.OVERLAY.getBaseValue()) {
-            this.zIndex = ZIndex.overlay(intZIndex - ZIndex.Layer.OVERLAY.getBaseValue());
+            this.zIndex = ZIndex.overlayIndex(intZIndex - ZIndex.Layer.OVERLAY.getBaseValue());
         } else if (intZIndex < ZIndex.Layer.MODAL.getBaseValue()) {
-            this.zIndex = ZIndex.modal(intZIndex - ZIndex.Layer.MODAL.getBaseValue());
+            this.zIndex = ZIndex.modalIndex(intZIndex - ZIndex.Layer.MODAL.getBaseValue());
         } else if (intZIndex < ZIndex.Layer.TOOLTIP.getBaseValue()) {
-            this.zIndex = ZIndex.tooltip(intZIndex - ZIndex.Layer.TOOLTIP.getBaseValue());
+            this.zIndex = ZIndex.tooltipIndex(intZIndex - ZIndex.Layer.TOOLTIP.getBaseValue());
         } else {
-            this.zIndex = ZIndex.debug(intZIndex - ZIndex.Layer.DEBUG.getBaseValue());
+            this.zIndex = ZIndex.debugIndex(intZIndex - ZIndex.Layer.DEBUG.getBaseValue());
         }
         return (T) this;
     }
@@ -334,26 +352,26 @@ public abstract class UIElement implements IElement {
         return cachedStyles;
     }
 
-    protected int getBgColor() { return getComputedStyles().backgroundColor; }
-    protected int getBorderRadius() { return getComputedStyles().borderRadius; }
-    protected Shadow getShadow() { return getComputedStyles().shadow; }
+    protected int getBgColor() { return getComputedStyles().getBackgroundColor(); }
+    protected int getBorderRadius() { return getComputedStyles().getBorderRadius(); }
+    protected Shadow getShadow() { return getComputedStyles().getShadow(); }
 
-    public int getPaddingTop() { return getComputedStyles().paddingTop; }
-    public int getPaddingRight() { return getComputedStyles().paddingRight; }
-    public int getPaddingBottom() { return getComputedStyles().paddingBottom; }
-    public int getPaddingLeft() { return getComputedStyles().paddingLeft; }
-    public int getMarginTop() { return getComputedStyles().marginTop; }
-    public int getMarginRight() { return getComputedStyles().marginRight; }
-    public int getMarginBottom() { return getComputedStyles().marginBottom; }
-    public int getMarginLeft() { return getComputedStyles().marginLeft; }
+    public int getPaddingTop() { return getComputedStyles().getPaddingTop(); }
+    public int getPaddingRight() { return getComputedStyles().getPaddingRight(); }
+    public int getPaddingBottom() { return getComputedStyles().getPaddingBottom(); }
+    public int getPaddingLeft() { return getComputedStyles().getPaddingLeft(); }
+    public int getMarginTop() { return getComputedStyles().getMarginTop(); }
+    public int getMarginRight() { return getComputedStyles().getMarginRight(); }
+    public int getMarginBottom() { return getComputedStyles().getMarginBottom(); }
+    public int getMarginLeft() { return getComputedStyles().getMarginLeft(); }
 
-    protected int getGap() { return getComputedStyles().gap; }
-    protected int getTextColor() { return getComputedStyles().textColor; }
-    protected boolean hasHoverEffect() { return getComputedStyles().hasHoverEffect; }
-    protected boolean hasFocusRing() { return getComputedStyles().hasFocusRing; }
+    protected int getGap() { return getComputedStyles().getGap(); }
+    protected int getTextColor() { return getComputedStyles().getTextColor(); }
+    protected boolean hasHoverEffect() { return getComputedStyles().isHasHoverEffect(); }
+    protected boolean hasFocusRing() { return getComputedStyles().isHasFocusRing(); }
 
-    public int getFlexGrow() { return getComputedStyles().flexGrow; }
-    protected int getFlexShrink() { return getComputedStyles().flexShrink; }
+    public int getFlexGrow() { return getComputedStyles().getFlexGrow(); }
+    protected int getFlexShrink() { return getComputedStyles().getFlexShrink(); }
 
     public boolean hasClass(StyleKey key) { return classes.contains(key); }
     public boolean isVisible() { return visible; }
@@ -373,9 +391,6 @@ public abstract class UIElement implements IElement {
     public ZIndex getZIndex() { return zIndex; }
     public int getZIndexValue() { return zIndex.getValue(); }
 
-    @Deprecated
-    public int getZIndexInt() { return zIndex.getValue(); }
-
     public int getX() { return x; }
     public int getY() { return y; }
     public int getWidth() { return width; }
@@ -393,8 +408,12 @@ public abstract class UIElement implements IElement {
     public abstract void render(DrawContext context);
 
     public static class InteractionBounds {
-        public final int minX, minY, maxX, maxY;
-        public final int width, height;
+        public final int minX;
+        public final int minY;
+        public final int maxX;
+        public final int maxY;
+        public final int width;
+        public final int height;
 
         public InteractionBounds(int x, int y, int width, int height) {
             this.minX = x;

@@ -4,7 +4,7 @@ import com.edgn.ui.core.container.components.TextComponent;
 import com.edgn.ui.core.item.BaseItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import com.edgn.ui.utils.DrawingUtils;
@@ -67,31 +67,56 @@ public class ButtonItem extends BaseItem {
         return this;
     }
 
-    public ButtonItem textColor(int color) { if (textComponent != null) textComponent.color(color); return this; }
-    public ButtonItem textBold() { if (textComponent != null) textComponent.bold(); return this; }
-    public ButtonItem textItalic() { if (textComponent != null) textComponent.italic(); return this; }
-    public ButtonItem textShadow() { if (textComponent != null) textComponent.shadow(); return this; }
-    public ButtonItem textGlow() { if (textComponent != null) textComponent.glow(); return this; }
-    public ButtonItem textGlow(int color) { if (textComponent != null) textComponent.glow(color); return this; }
-    public ButtonItem textPulse() { if (textComponent != null) textComponent.pulse(); return this; }
-    public ButtonItem textWave() { if (textComponent != null) textComponent.wave(); return this; }
-    public ButtonItem textTypewriter() { if (textComponent != null) textComponent.typewriter(); return this; }
-    public ButtonItem textRainbow() { if (textComponent != null) textComponent.rainbow(); return this; }
+    public ButtonItem textColor(int color) {
+        if (textComponent != null) textComponent.color(color);
+        return this;
+    }
+    public ButtonItem textBold() {
+        if (textComponent != null) textComponent.bold();
+        return this;
+    }
+    public ButtonItem textItalic() {
+        if (textComponent != null) textComponent.italic();
+        return this;
+
+    }
+    public ButtonItem textShadow() {
+        if (textComponent != null) textComponent.shadow();
+        return this;
+
+    }
+    public ButtonItem textGlow() {
+        if (textComponent != null) textComponent.glow();
+        return this;
+
+    }
+    public ButtonItem textGlow(int color) {
+        if (textComponent != null) textComponent.glow(color);
+        return this;
+
+    }
+    public ButtonItem textPulse() {
+        if (textComponent != null) textComponent.pulse();
+        return this;
+    }
+    public ButtonItem textWave() {
+        if (textComponent != null) textComponent.wave();
+        return this;
+    }
+
+    public ButtonItem textTypewriter() {
+        if (textComponent != null) textComponent.typewriter();
+        return this;
+    }
+
+    public ButtonItem textRainbow() {
+        if (textComponent != null) textComponent.rainbow();
+        return this;
+    }
 
     public TextComponent getTextComponent() { return textComponent; }
     public String getText() { return textComponent != null ? textComponent.getText() : ""; }
     public boolean hasText() { return textComponent != null && !textComponent.getText().isEmpty(); }
-
-    public ButtonItem asFlexPercent(int basisPercent, int grow, int shrink) {
-        switch (Math.max(0, grow)) {
-            case 3 -> addClass(StyleKey.FLEX_GROW_3);
-            case 2 -> addClass(StyleKey.FLEX_GROW_2);
-            case 1 -> addClass(StyleKey.FLEX_GROW_1);
-            default -> addClass(StyleKey.FLEX_GROW_0);
-        }
-        if (shrink <= 0) addClass(StyleKey.FLEX_SHRINK_0); else addClass(StyleKey.FLEX_SHRINK_1);
-        return this;
-    }
 
     @Override
     public boolean onMouseClick(double mouseX, double mouseY, int button) {
@@ -196,7 +221,7 @@ public class ButtonItem extends BaseItem {
         int contentH = Math.max(0, ch - getPaddingTop() - getPaddingBottom());
 
         if (!textComponent.hasCustomStyling()) {
-            textComponent.color(getComputedStyles().textColor);
+            textComponent.color(getComputedStyles().getTextColor());
         }
 
         textComponent.render(context, contentX, contentY, contentW, contentH);

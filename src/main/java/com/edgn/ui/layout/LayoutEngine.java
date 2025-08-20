@@ -4,8 +4,8 @@ import com.edgn.ui.core.UIElement;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
+@SuppressWarnings("unused")
 public class LayoutEngine {
 
     public static void applyElementStyles(UIElement element) {
@@ -16,14 +16,20 @@ public class LayoutEngine {
 
         if (constraints.getWidthPercent() != null && element.getParent() != null) {
             int newWidth = (int)(element.getParent().getCalculatedWidth() * constraints.getWidthPercent());
-            element.setWidth(Math.max(constraints.getMinWidth() != null ? constraints.getMinWidth() : 0,
-                    Math.min(constraints.getMaxWidth() != null ? constraints.getMaxWidth() : Integer.MAX_VALUE, newWidth)));
+            element.setWidth(Math.clamp(
+                    newWidth,
+                    constraints.getMinWidth() != null ? constraints.getMinWidth() : 0,
+                    constraints.getMaxWidth() != null ? constraints.getMaxWidth() : Integer.MAX_VALUE
+            ));
         }
 
         if (constraints.getHeightPercent() != null && element.getParent() != null) {
             int newHeight = (int)(element.getParent().getCalculatedHeight() * constraints.getHeightPercent());
-            element.setHeight(Math.max(constraints.getMinHeight() != null ? constraints.getMinHeight() : 0,
-                    Math.min(constraints.getMaxHeight() != null ? constraints.getMaxHeight() : Integer.MAX_VALUE, newHeight)));
+            element.setHeight(Math.clamp(
+                    newHeight,
+                    constraints.getMinHeight() != null ? constraints.getMinHeight() : 0,
+                    constraints.getMaxHeight() != null ? constraints.getMaxHeight() : Integer.MAX_VALUE
+            ));
         }
     }
 
@@ -68,7 +74,7 @@ public class LayoutEngine {
     public static List<UIElement> sortByZIndex(List<UIElement> elements) {
         return elements.stream()
                 .sorted(Comparator.comparing(UIElement::getZIndex))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<UIElement> sortByInteractionPriority(List<UIElement> elements, double mouseX, double mouseY) {
@@ -88,20 +94,20 @@ public class LayoutEngine {
                     int bArea = b.getCalculatedWidth() * b.getCalculatedHeight();
                     return Integer.compare(aArea, bArea);
                 })
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<UIElement> sortByRenderOrder(List<UIElement> elements) {
         return elements.stream()
                 .filter(UIElement::isVisible)
                 .sorted(Comparator.comparing(UIElement::getZIndex))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<UIElement> filterByLayer(List<UIElement> elements, ZIndex.Layer layer) {
         return elements.stream()
                 .filter(element -> element.getZIndex().getLayer() == layer)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static UIElement getTopElementAt(List<UIElement> elements, double mouseX, double mouseY) {
@@ -142,7 +148,7 @@ public class LayoutEngine {
                 .filter(UIElement::isRendered)
                 .filter(element -> element.isInInteractionZone(mouseX, mouseY))
                 .sorted(Comparator.comparing(UIElement::getZIndex).reversed())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public record LayoutBox(int x, int y, int width, int height) {

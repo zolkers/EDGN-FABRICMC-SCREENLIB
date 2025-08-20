@@ -1,9 +1,11 @@
 package com.edgn.ui.css;
 
 import com.edgn.ui.core.UIElement;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 
 public class CSSStyleApplier {
+
+    private CSSStyleApplier() {/* should not be instantiated */}
 
     public static ComputedStyles computeStyles(UIElement element) {
         UIStyleSystem styleSystem = element.getStyleSystem();
@@ -244,17 +246,174 @@ public class CSSStyleApplier {
     }
 
     public static class ComputedStyles {
-        public int backgroundColor = 0;
-        public int textColor = 0xFF000000;
-        public int borderRadius = 0;
-        public Shadow shadow = null;
-        public int paddingTop = 0, paddingRight = 0, paddingBottom = 0, paddingLeft = 0;
-        public int marginTop = 0, marginRight = 0, marginBottom = 0, marginLeft = 0;
-        public int gap = 0;
-        public boolean hasHoverEffect = false;
-        public boolean hasFocusRing = false;
-        public int flexGrow = 0;
-        public int flexShrink = 1;
-        public int flexBasis = 0;
+        private int backgroundColor = 0;
+        private int textColor = 0xFF000000;
+        private int borderRadius = 0;
+        private Shadow shadow = null;
+
+        private int paddingTop = 0;
+        private int paddingRight = 0;
+        private int paddingBottom = 0;
+        private int paddingLeft = 0;
+
+        private int marginTop = 0;
+        private int marginRight = 0;
+        private int marginBottom = 0;
+        private int marginLeft = 0;
+
+        private int gap = 0;
+
+        private boolean hasHoverEffect = false;
+        private boolean hasFocusRing = false;
+
+        private int flexGrow = 0;
+        private int flexShrink = 1;
+        private int flexBasis = 0;
+
+        private ComputedStyles() { /* should never be instanciated */}
+
+        public int getBackgroundColor() {
+            return backgroundColor;
+        }
+
+        public void setBackgroundColor(int backgroundColor) {
+            this.backgroundColor = backgroundColor;
+        }
+
+        public int getTextColor() {
+            return textColor;
+        }
+
+        public void setTextColor(int textColor) {
+            this.textColor = textColor;
+        }
+
+        public int getBorderRadius() {
+            return borderRadius;
+        }
+
+        public void setBorderRadius(int borderRadius) {
+            this.borderRadius = borderRadius;
+        }
+
+        public Shadow getShadow() {
+            return shadow;
+        }
+
+        public void setShadow(Shadow shadow) {
+            this.shadow = shadow;
+        }
+
+        public int getPaddingTop() {
+            return paddingTop;
+        }
+
+        public void setPaddingTop(int paddingTop) {
+            this.paddingTop = paddingTop;
+        }
+
+        public int getPaddingRight() {
+            return paddingRight;
+        }
+
+        public void setPaddingRight(int paddingRight) {
+            this.paddingRight = paddingRight;
+        }
+
+        public int getPaddingBottom() {
+            return paddingBottom;
+        }
+
+        public void setPaddingBottom(int paddingBottom) {
+            this.paddingBottom = paddingBottom;
+        }
+
+        public int getPaddingLeft() {
+            return paddingLeft;
+        }
+
+        public void setPaddingLeft(int paddingLeft) {
+            this.paddingLeft = paddingLeft;
+        }
+
+        public int getMarginTop() {
+            return marginTop;
+        }
+
+        public void setMarginTop(int marginTop) {
+            this.marginTop = marginTop;
+        }
+
+        public int getMarginRight() {
+            return marginRight;
+        }
+
+        public void setMarginRight(int marginRight) {
+            this.marginRight = marginRight;
+        }
+
+        public int getMarginBottom() {
+            return marginBottom;
+        }
+
+        public void setMarginBottom(int marginBottom) {
+            this.marginBottom = marginBottom;
+        }
+
+        public int getMarginLeft() {
+            return marginLeft;
+        }
+
+        public void setMarginLeft(int marginLeft) {
+            this.marginLeft = marginLeft;
+        }
+
+        public int getGap() {
+            return gap;
+        }
+
+        public void setGap(int gap) {
+            this.gap = gap;
+        }
+
+        public boolean isHasHoverEffect() {
+            return hasHoverEffect;
+        }
+
+        public void setHasHoverEffect(boolean hasHoverEffect) {
+            this.hasHoverEffect = hasHoverEffect;
+        }
+
+        public boolean isHasFocusRing() {
+            return hasFocusRing;
+        }
+
+        public void setHasFocusRing(boolean hasFocusRing) {
+            this.hasFocusRing = hasFocusRing;
+        }
+
+        public int getFlexGrow() {
+            return flexGrow;
+        }
+
+        public void setFlexGrow(int flexGrow) {
+            this.flexGrow = flexGrow;
+        }
+
+        public int getFlexShrink() {
+            return flexShrink;
+        }
+
+        public void setFlexShrink(int flexShrink) {
+            this.flexShrink = flexShrink;
+        }
+
+        public int getFlexBasis() {
+            return flexBasis;
+        }
+
+        public void setFlexBasis(int flexBasis) {
+            this.flexBasis = flexBasis;
+        }
     }
 }

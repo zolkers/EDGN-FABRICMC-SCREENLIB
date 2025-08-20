@@ -2,9 +2,16 @@ package com.edgn.ui.layout;
 
 @SuppressWarnings("unused")
 public class LayoutConstraints {
-    private Integer minWidth, maxWidth, minHeight, maxHeight;
-    private Float widthPercent, heightPercent;
-    private Integer leftMargin, rightMargin, topMargin, bottomMargin;
+    private Integer minWidth;
+    private Integer maxWidth;
+    private Integer minHeight;
+    private Integer maxHeight;
+    private Float widthPercent;
+    private Float heightPercent;
+    private Integer leftMargin;
+    private Integer rightMargin;
+    private Integer topMargin;
+    private Integer bottomMargin;
     private HorizontalAlign horizontalAlign = HorizontalAlign.LEFT;
     private VerticalAlign verticalAlign = VerticalAlign.TOP;
 

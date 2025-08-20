@@ -2,6 +2,7 @@ package com.edgn.exceptions;
 
 import java.io.Serial;
 
+@SuppressWarnings("unused")
 public final class ScreenCrashException extends RuntimeException {
     @Serial private static final long serialVersionUID = 1L;
 

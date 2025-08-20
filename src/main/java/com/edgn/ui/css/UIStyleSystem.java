@@ -1,25 +1,24 @@
 package com.edgn.ui.css;
 
 
-import com.edgn.ui.css.rules.BorderRadius;
-import com.edgn.ui.css.rules.Shadow;
-import com.edgn.ui.css.rules.Spacing;
+import com.edgn.ui.css.values.BorderRadius;
+import com.edgn.ui.css.values.Shadow;
+import com.edgn.ui.css.values.Spacing;
 import com.edgn.ui.event.UIEventManager;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 
 @SuppressWarnings("unused")
 public class UIStyleSystem {
-    private final Map<StyleKey, Integer> colorMap = new HashMap<>();
-    private final Map<StyleKey, Object> styleValues = new HashMap<>();
+    private final Map<StyleKey, Integer> colorMap = new EnumMap<>(StyleKey.class);
+    private final Map<StyleKey, Object> styleValues = new EnumMap<>(StyleKey.class);
     private final UIEventManager eventManager = new UIEventManager();
 
     public UIStyleSystem() {
         initializeDefaults();
     }
 
-    //TODO: add rules for values directly implemented here as it could confuse anyone
     private void initializeDefaults() {
         colorMap.put(StyleKey.PRIMARY, 0xFF0D6EFD);
         colorMap.put(StyleKey.SECONDARY, 0xFF6C757D);
@@ -214,15 +213,15 @@ public class UIStyleSystem {
 
     public int getValue(StyleKey key) {
         Object value = styleValues.get(key);
-        if (value instanceof Integer) return (Integer) value;
-        if (value instanceof Float) return Math.round((Float) value * 100);
+        if (value instanceof Integer integer) return integer;
+        if (value instanceof Float floatValue) return Math.round(floatValue * 100);
         return 0;
     }
 
     public float getOpacity(StyleKey key) {
         Object value = styleValues.get(key);
-        if (value instanceof Float) {
-            return (Float) value;
+        if (value instanceof Float floatValue) {
+            return floatValue;
         }
         return 1.0f;
     }
@@ -233,7 +232,7 @@ public class UIStyleSystem {
         int green = (color >> 8) & 0xFF;
         int blue = color & 0xFF;
 
-        int newAlpha = Math.round(alpha * Math.max(0.0f, Math.min(1.0f, opacity)));
+        int newAlpha = Math.round(alpha * Math.clamp(opacity, 0.0f, 1.0f));
 
         return (newAlpha << 24) | (red << 16) | (green << 8) | blue;
     }

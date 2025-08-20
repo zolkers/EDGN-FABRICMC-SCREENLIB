@@ -27,6 +27,7 @@ import java.util.Deque;
  *
  * @author EDGN
  */
+@SuppressWarnings("unused")
 public class DrawingUtils {
 
 
@@ -34,6 +35,12 @@ public class DrawingUtils {
     private static final ThreadLocal<Deque<Rectangle>> CLIP_STACK =
             ThreadLocal.withInitial(ArrayDeque::new);
 
+
+    private DrawingUtils() {/* utility class */}
+
+    public static void clearClipStack() {
+        CLIP_STACK.remove();
+    }
 
     /**
      * Fills a rectangle (thin wrapper around {@link DrawContext#fill}).
@@ -103,7 +110,7 @@ public class DrawingUtils {
      * @param color  fill color (ARGB)
      */
     public static void drawRoundedRect(DrawContext context, int x, int y, int width, int height, int radius, int color) {
-        radius = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+        radius = Math.clamp(radius, 0, Math.min(width, height) / 2);
         context.fill(x + radius, y, x + width - radius, y + height, color);
         context.fill(x, y + radius, x + radius, y + height - radius, color);
         context.fill(x + width - radius, y + radius, x + width, y + height - radius, color);
@@ -119,7 +126,7 @@ public class DrawingUtils {
      * @param thickness border thickness in pixels (>=1)
      */
     public static void drawRoundedRectBorder(DrawContext context, int x, int y, int width, int height, int radius, int color, int thickness) {
-        radius = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+        radius = Math.clamp(radius, 0, Math.min(width, height) / 2);
         thickness = Math.max(1, thickness);
         for (int i = 0; i < thickness; i++) {
             context.fill(x + radius, y + i, x + width - radius, y + i + 1, color);
@@ -200,7 +207,7 @@ public class DrawingUtils {
      * <p>Uses a central gradient + side bands + flat-color corners for speed.</p>
      */
     public static void drawRoundedRectGradientV(DrawContext context, int x, int y, int w, int h, int radius, int startColor, int endColor) {
-        radius = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+        radius = Math.clamp(radius, 0, Math.min(w, h) / 2);
         context.fillGradient(x + radius, y, x + w - radius, y + h, startColor, endColor);
         context.fillGradient(x, y + radius, x + radius, y + h - radius, startColor, endColor);
         context.fillGradient(x + w - radius, y + radius, x + w, y + h - radius, startColor, endColor);
@@ -234,10 +241,6 @@ public class DrawingUtils {
         return mouseX >= x && mouseX <= x + width && mouseY >= y && mouseY <= y + height;
     }
 
-    // ----------------------------
-    // Circles / Triangles
-    // ----------------------------
-
     /**
      * Draws a filled circle using horizontal scanlines (fast, no allocations).
      *
@@ -250,7 +253,7 @@ public class DrawingUtils {
         if (r <= 0) return;
         int r2 = r * r;
         for (int dy = -r; dy <= r; dy++) {
-            int dx = (int) Math.floor(Math.sqrt(r2 - dy * dy));
+            int dx = (int) Math.floor(Math.sqrt((double) r2 - dy * dy));
             context.fill(cx - dx, cy + dy, cx + dx + 1, cy + dy + 1, color);
         }
     }
@@ -266,9 +269,10 @@ public class DrawingUtils {
         for (int t = 0; t < thickness; t++) {
             int rr = r - t;
             if (rr <= 0) break;
-            int x = rr, y = 0, err = 1 - x;
+            int x = rr;
+            int y = 0;
+            int err = 1 - x;
             while (x >= y) {
-                // 8 octants
                 putPixel(context, cx + x, cy + y, color);
                 putPixel(context, cx + y, cy + x, color);
                 putPixel(context, cx - y, cy + x, color);
@@ -407,7 +411,8 @@ public class DrawingUtils {
         int[][] texCoords = { {0,1},{1,1},{1,0},{0,0} };
         rotation = ((rotation % 4) + 4) % 4;
         for (int i = 0; i < rotation; i++) {
-            int t0 = texCoords[3][0], t1 = texCoords[3][1];
+            int t0 = texCoords[3][0];
+            int t1 = texCoords[3][1];
             texCoords[3][0] = texCoords[2][0]; texCoords[3][1] = texCoords[2][1];
             texCoords[2][0] = texCoords[1][0]; texCoords[2][1] = texCoords[1][1];
             texCoords[1][0] = texCoords[0][0]; texCoords[1][1] = texCoords[0][1];
@@ -468,9 +473,9 @@ public class DrawingUtils {
 
         Tessellator tess = Tessellator.getInstance();
         BufferBuilder buf = tess.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE_COLOR);
-        buf.vertex(x,     y + h, 0).color(r, g, b, a).texture(u0, v1);
-        buf.vertex(x + w, y + h, 0).color(r, g, b, a).texture(u1, v1);
-        buf.vertex(x + w, y,     0).color(r, g, b, a).texture(u1, v0);
+        buf.vertex(x,     (float) y + h, 0).color(r, g, b, a).texture(u0, v1);
+        buf.vertex((float) x + w, (float) y + h, 0).color(r, g, b, a).texture(u1, v1);
+        buf.vertex((float) x + w, y,     0).color(r, g, b, a).texture(u1, v0);
         buf.vertex(x,     y,     0).color(r, g, b, a).texture(u0, v0);
         BuiltBuffer built = buf.endNullable();
         if (built != null) BufferRenderer.drawWithGlobalProgram(built);
@@ -557,6 +562,11 @@ public class DrawingUtils {
         return argb(a, r, g, b);
     }
 
-    private static int clamp255(int v) { return Math.max(0, Math.min(255, v)); }
-    private static float clamp01(float v) { return Math.max(0f, Math.min(1f, v)); }
+    private static int clamp255(int v) {
+        return Math.clamp(v, 0, 255);
+    }
+
+    private static float clamp01(float v) {
+        return Math.clamp(v, 0f, 1f);
+    }
 }

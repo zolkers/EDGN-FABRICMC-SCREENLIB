@@ -8,6 +8,7 @@ import com.edgn.ui.core.item.items.ButtonItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.template.BaseTemplate;
 import com.edgn.ui.template.TemplateSettings;
+import com.edgn.ui.utils.ColorUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
@@ -37,7 +38,7 @@ public class GridContainerExample extends BaseTemplate {
                 );
 
         ButtonItem back = new ButtonItem(uiSystem, 0, 0, 120, 28)
-                .withText(new TextComponent("Back"))
+                .withText(new TextComponent("Back").color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
                         StyleKey.SECONDARY,
                         StyleKey.TEXT_WHITE,
@@ -67,7 +68,7 @@ public class GridContainerExample extends BaseTemplate {
 
         for (int i = 1; i <= 300; i++) {
             ButtonItem tile = new ButtonItem(uiSystem, 0, 0, 220, 80)
-                    .withText(new TextComponent("Card " + i))
+                    .withText(new TextComponent("Card " + i).color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                     .addClass(
                             StyleKey.INFO,
                             StyleKey.TEXT_WHITE,

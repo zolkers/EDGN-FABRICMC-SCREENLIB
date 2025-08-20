@@ -1,4 +1,4 @@
-package com.edgn.ui.css.rules;
+package com.edgn.ui.css.values;
 
 public enum Shadow {
     NONE(0x00000000, 0),

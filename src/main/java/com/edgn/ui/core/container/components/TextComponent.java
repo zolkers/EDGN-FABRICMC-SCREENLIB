@@ -83,6 +83,7 @@ public class TextComponent implements Component {
         if (text == null || text.isEmpty() || !animationEnabled) return;
         this.maxWidth = maxWidth - safetyMargin;
         String displayText = getProcessedText();
+        if(displayText == null) return;
         if (displayText.isEmpty()) return;
         switch (overflowMode) {
             case WRAP -> renderWrapped(context, x, y, this.maxWidth, maxLines);
@@ -115,7 +116,7 @@ public class TextComponent implements Component {
     }
 
     public void renderWrapped(DrawContext context, int x, int y, int maxWidth, int maxLines) {
-        if (text == null || text.isEmpty() || textRenderer == null) return;
+        if (text == null || text.isEmpty() || textRenderer == null || context == null) return;
         List<OrderedText> orderedLines = textRenderer.wrapLines(Text.literal(this.text), maxWidth);
         List<String> stringLines = orderedLines.stream().map(orderedText -> {
             StringBuilder sb = new StringBuilder();
@@ -130,6 +131,7 @@ public class TextComponent implements Component {
         int lineHeight = textRenderer.fontHeight + 2;
         for (int i = 0; i < Math.min(stringLines.size(), maxLines); i++) {
             String line = stringLines.get(i);
+            if(line == null) continue;
             if (i == maxLines - 1 && stringLines.size() > maxLines) {
                 line = truncateText(line, maxWidth);
             }
@@ -193,7 +195,7 @@ public class TextComponent implements Component {
 
     private int getCurrentColor(int charIndex) {
         float time = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
-        float positionFactor = (float) charIndex / 15.0f;
+        float positionFactor = charIndex / 15.0f;
         return switch (effectType) {
             case SOLID -> this.startColor;
             case GRADIENT -> getGradientColorAt(time, positionFactor);
@@ -276,9 +278,15 @@ public class TextComponent implements Component {
     }
 
     private int interpolateColor(int color1, int color2, float factor) {
-        float f = Math.max(0.0f, Math.min(1.0f, factor));
-        int r1 = (color1 >> 16) & 0xFF, g1 = (color1 >> 8) & 0xFF, b1 = color1 & 0xFF, a1 = (color1 >> 24) & 0xFF;
-        int r2 = (color2 >> 16) & 0xFF, g2 = (color2 >> 8) & 0xFF, b2 = color2 & 0xFF, a2 = (color2 >> 24) & 0xFF;
+        float f = Math.clamp(factor, 0.0f, 1.0f);
+        int r1 = (color1 >> 16) & 0xFF;
+        int g1 = (color1 >> 8) & 0xFF;
+        int b1 = color1 & 0xFF;
+        int a1 = (color1 >> 24) & 0xFF;
+        int r2 = (color2 >> 16) & 0xFF;
+        int g2 = (color2 >> 8) & 0xFF;
+        int b2 = color2 & 0xFF;
+        int a2 = (color2 >> 24) & 0xFF;
         int r = (int) (r1 + (r2 - r1) * f);
         int g = (int) (g1 + (r2 - g1) * f);
         int b = (int) (b1 + (r2 - b1) * f);
@@ -363,7 +371,7 @@ public class TextComponent implements Component {
         for (int offsetX = -(int) glowRadius; offsetX <= glowRadius; offsetX++) {
             for (int offsetY = -(int) glowRadius; offsetY <= glowRadius; offsetY++) {
                 if (offsetX == 0 && offsetY == 0) continue;
-                float distance = (float) Math.sqrt(offsetX * offsetX + offsetY * offsetY);
+                float distance = (float) Math.sqrt((double) offsetX * offsetX + offsetY * offsetY);
                 if (distance <= glowRadius) {
                     float alpha = (1.0f - distance / glowRadius) * glowAlpha * 0.3f;
                     int currentGlowColor = (glowColor & 0x00FFFFFF) | ((int) (255 * alpha) << 24);
@@ -410,7 +418,7 @@ public class TextComponent implements Component {
     public TextComponent setMaxLines(int maxLines) { this.maxLines = Math.max(1, maxLines); return this; }
     public TextComponent setEllipsis(String ellipsis) { this.ellipsis = ellipsis != null ? ellipsis : "..."; return this; }
     public TextComponent setSafetyMargin(int margin) { this.safetyMargin = Math.max(0, margin); return this; }
-    public TextComponent setMinScale(float minScale) { this.minScale = Math.max(0.1f, Math.min(1.0f, minScale)); return this; }
+    public TextComponent setMinScale(float minScale) {this.minScale = Math.clamp(minScale, 0.1f, 1.0f); return this;}
     public TextComponent truncate() { return setOverflowMode(TextOverflowMode.TRUNCATE); }
     public TextComponent truncate(int maxWidth) { return setOverflowMode(TextOverflowMode.TRUNCATE).setMaxWidth(maxWidth); }
     public TextComponent wrap(int maxLines) { return setOverflowMode(TextOverflowMode.WRAP).setMaxLines(maxLines); }

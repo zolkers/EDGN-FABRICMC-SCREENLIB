@@ -3,7 +3,7 @@ package com.edgn.ui.core.container;
 import com.edgn.ui.core.IElement;
 import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutEngine;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
@@ -17,7 +17,7 @@ public abstract class BaseContainer extends UIElement implements IContainer {
     private UIElement capturedElement = null;
     private int capturedButton = -1;
 
-    public BaseContainer(UIStyleSystem styleSystem, int x, int y, int width, int height) {
+    protected BaseContainer(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
     }
 
@@ -209,8 +209,6 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         markAsRendered();
         updateConstraints();
         renderBackground(context);
-
-        LayoutEngine.LayoutBox content = getContentArea();
 
         InteractionBounds bounds = getInteractionBounds();
         if (bounds.isValid()) {

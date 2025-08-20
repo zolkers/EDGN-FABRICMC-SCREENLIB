@@ -6,7 +6,7 @@ import com.edgn.ui.core.models.text.DefaultTextInputModel;
 import com.edgn.ui.core.models.text.TextInputModel;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
-import com.edgn.ui.css.rules.Shadow;
+import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import com.edgn.ui.utils.DrawingUtils;
@@ -34,6 +34,16 @@ public class TextAreaItem extends BaseItem {
     private int scrollY = 0;
     private boolean wrap = false;
     private int preferredCaretX = -1;
+
+    private static final int PLACEHOLDER_COLOR_DEFAULT = 0x7FFFFFFF;
+
+    private static final class Metrics {
+        int x;
+        int y;
+        int w;
+        int h;
+        int lh;
+    }
 
     public TextAreaItem(UIStyleSystem styleSystem, int x, int y, int w, int h) {
         super(styleSystem, x, y, w, h);
@@ -73,7 +83,12 @@ public class TextAreaItem extends BaseItem {
 
     public TextAreaItem setWrap(boolean enabled) { wrap = enabled; return this; }
     public TextAreaItem setLineSpacing(int px) { lineSpacing = Math.max(0, px); return this; }
-    public TextAreaItem setTextSafetyMargin(int m) { textSafetyMargin = Math.max(0, m); if (textComponent!=null) textComponent.setSafetyMargin(textSafetyMargin); if (placeholderComponent!=null) placeholderComponent.setSafetyMargin(textSafetyMargin); return this; }
+    public TextAreaItem setTextSafetyMargin(int m) {
+        textSafetyMargin = Math.max(0, m);
+        if (textComponent!=null) textComponent.setSafetyMargin(textSafetyMargin);
+        if (placeholderComponent!=null) placeholderComponent.setSafetyMargin(textSafetyMargin);
+        return this;
+    }
     public TextAreaItem setSelectionColor(int argb) { selectionColor = argb; return this; }
     public TextAreaItem textColor(int color) { ensureTextComponent().color(color); return this; }
     public TextAreaItem textBold() { ensureTextComponent().bold(); return this; }
@@ -118,32 +133,58 @@ public class TextAreaItem extends BaseItem {
     public boolean onMouseRelease(double mouseX, double mouseY, int button) { return isFocused(); }
 
     @Override
-    public void onMouseEnter() { if (!enabled) return; setState(ItemState.HOVERED); }
+    public void onMouseEnter() {
+        if (!enabled) return;
+        setState(ItemState.HOVERED);
+    }
 
     @Override
-    public void onMouseLeave() { if (!enabled) return; if (!isFocused()) setState(ItemState.NORMAL); }
+    public void onMouseLeave() {
+        if (!enabled) return;
+        if (!isFocused()) setState(ItemState.NORMAL);
+    }
 
     @Override
     public boolean onKeyPress(int key, int sc, int mods) {
         if (!enabled || !isFocused()) return false;
-        boolean ctrl = (mods & GLFW.GLFW_MOD_CONTROL) != 0 || (mods & GLFW.GLFW_MOD_SUPER) != 0;
+
+        boolean ctrl  = (mods & GLFW.GLFW_MOD_CONTROL) != 0 || (mods & GLFW.GLFW_MOD_SUPER) != 0;
         boolean shift = (mods & GLFW.GLFW_MOD_SHIFT) != 0;
-        switch (key) {
-            case GLFW.GLFW_KEY_LEFT -> { moveCaret(ctrl ? model.wordLeft() : model.getCaret()-1, shift); preferredCaretX = caretPixelXInLine(model.getCaret()); return true; }
-            case GLFW.GLFW_KEY_RIGHT -> { moveCaret(ctrl ? model.wordRight() : model.getCaret()+1, shift); preferredCaretX = caretPixelXInLine(model.getCaret()); return true; }
-            case GLFW.GLFW_KEY_UP -> { moveCaretVertical(-1, shift); return true; }
-            case GLFW.GLFW_KEY_DOWN -> { moveCaretVertical(1, shift); return true; }
-            case GLFW.GLFW_KEY_HOME -> { moveCaret(lineStart(model.getCaret()), shift); preferredCaretX = 0; return true; }
-            case GLFW.GLFW_KEY_END -> { moveCaret(lineEnd(model.getCaret()), shift); preferredCaretX = Integer.MAX_VALUE; return true; }
-            case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(ctrl); ensureCaretVisible(); return true; }
-            case GLFW.GLFW_KEY_DELETE -> { model.delete(ctrl); ensureCaretVisible(); return true; }
-            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> { model.insert("\n"); ensureCaretVisible(); return true; }
-            case GLFW.GLFW_KEY_A -> { if (ctrl) { model.setSelection(0, model.length()); return true; } break; }
-            case GLFW.GLFW_KEY_C -> { if (ctrl) { copySelection(); return true; } break; }
-            case GLFW.GLFW_KEY_X -> { if (ctrl) { cutSelection(); return true; } break; }
-            case GLFW.GLFW_KEY_V -> { if (ctrl) { pasteClipboard(); ensureCaretVisible(); return true; } break; }
+
+        if (ctrl) {
+            switch (key) {
+                case GLFW.GLFW_KEY_A -> { model.setSelection(0, model.length()); return true; }
+                case GLFW.GLFW_KEY_C -> { copySelection(); return true; }
+                case GLFW.GLFW_KEY_X -> { cutSelection(); return true; }
+                case GLFW.GLFW_KEY_V -> { pasteClipboard(); ensureCaretVisible(); return true; }
+                default -> {
+                    return false;
+                }
+            }
         }
-        return false;
+
+        switch (key) {
+            case GLFW.GLFW_KEY_LEFT  -> { moveLeftRight(-1, shift); return true; }
+            case GLFW.GLFW_KEY_RIGHT -> { moveLeftRight(+1, shift); return true; }
+
+            case GLFW.GLFW_KEY_UP    -> { moveCaretVertical(-1, shift); return true; }
+            case GLFW.GLFW_KEY_DOWN  -> { moveCaretVertical(1,  shift); return true; }
+
+            case GLFW.GLFW_KEY_HOME  -> { moveCaret(lineStart(model.getCaret()), shift); preferredCaretX = 0; return true; }
+            case GLFW.GLFW_KEY_END   -> { moveCaret(lineEnd(model.getCaret()),   shift); preferredCaretX = Integer.MAX_VALUE; return true; }
+
+            case GLFW.GLFW_KEY_BACKSPACE -> { model.backspace(false); ensureCaretVisible(); return true; }
+            case GLFW.GLFW_KEY_DELETE    -> { model.delete(false);    ensureCaretVisible(); return true; }
+
+            case GLFW.GLFW_KEY_ENTER, GLFW.GLFW_KEY_KP_ENTER -> { model.insert("\n"); ensureCaretVisible(); return true; }
+
+            default -> { return false; }
+        }
+    }
+
+    private void moveLeftRight(int dir, boolean shift) {
+        moveCaret(model.getCaret() + dir, shift);
+        preferredCaretX = caretPixelXInLine(model.getCaret());
     }
 
     @Override
@@ -158,7 +199,10 @@ public class TextAreaItem extends BaseItem {
     public void render(DrawContext context) {
         if (!visible) return;
         updateConstraints();
-        int cx = getCalculatedX(), cy = getCalculatedY(), cw = getCalculatedWidth(), ch = getCalculatedHeight();
+        int cx = getCalculatedX();
+        int cy = getCalculatedY();
+        int cw = getCalculatedWidth();
+        int ch = getCalculatedHeight();
         int baseBg = getBgColor(); if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.SURFACE);
         int bg = backgroundForState(baseBg);
         int radius = getBorderRadius();
@@ -173,78 +217,109 @@ public class TextAreaItem extends BaseItem {
         blinkCaret();
     }
 
-    private void renderContent(DrawContext ctx, int cx, int cy, int cw, int ch) {
-        int x = cx + getPaddingLeft(), y = cy + getPaddingTop();
-        int w = Math.max(0, cw - getPaddingLeft() - getPaddingRight());
-        int h = Math.max(0, ch - getPaddingTop() - getPaddingBottom());
+    private Metrics computeMetrics(int cx, int cy, int cw, int ch) {
+        int pl = getPaddingLeft();
+        int pr = getPaddingRight();
+        int pt = getPaddingTop();
+        int pb = getPaddingBottom();
 
+        Metrics m = new Metrics();
+        m.x  = cx + pl;
+        m.y  = cy + pt;
+        m.w  = Math.clamp((long) cw - pl - pr, 0, Integer.MAX_VALUE);
+        m.h  = Math.clamp((long) ch - pt - pb, 0, Integer.MAX_VALUE);
+        m.lh = textRenderer.fontHeight + lineSpacing;
+        return m;
+    }
+
+    private void ensurePlaceholderStyled() {
         ensureTextComponent();
         if (placeholderComponent == null) withPlaceholder("");
-        if (!placeholderComponent.hasCustomStyling()) placeholderComponent.color(0x7FFFFFFF);
+        if (!placeholderComponent.hasCustomStyling()) {
+            placeholderComponent.color(PLACEHOLDER_COLOR_DEFAULT);
+        }
+    }
 
-        List<String> lines = computeLines(model.getText(), w);
-        int lh = textRenderer.fontHeight + lineSpacing;
-        int contentHeight = Math.max(lh, lines.size() * lh);
-        scrollY = Math.max(0, Math.min(scrollY, Math.max(0, contentHeight - h)));
+    private void renderContent(DrawContext ctx, int cx, int cy, int cw, int ch) {
+        Metrics m = computeMetrics(cx, cy, cw, ch);
+        ensurePlaceholderStyled();
 
-        int firstLine = Math.max(0, scrollY / lh);
-        int yOffset = firstLine * lh - scrollY;
+        List<String> lines = computeLines(model.getText(), m.w);
+        int contentHeight  = Math.max(m.lh, lines.size() * m.lh);
+        scrollY            = Math.clamp(scrollY, 0, Math.max(0, contentHeight - m.h));
 
-        DrawingUtils.pushClip(ctx, x, y, w, h);
+        int firstLine = (m.lh > 0) ? scrollY / m.lh : 0;
+        firstLine     = Math.clamp(firstLine, 0, Math.max(0, lines.size() - 1));
+        int yOffset   = firstLine * m.lh - scrollY;
 
-        if (model.length() == 0) {
-            if (!isFocused()) {
-                placeholderComponent
-                        .verticalAlign(TextComponent.VerticalAlign.TOP)
-                        .render(ctx, x, y, w, h);
-            } else if (caretVisible) {
-                int caretColor =
-                        (textComponent != null && textComponent.hasCustomStyling())
-                                ? (textComponent.getColor() | 0xFF000000)
-                                : (getComputedStyles().textColor | 0xFF000000);
-
-                DrawingUtils.drawVLine(
-                        ctx,
-                        x,
-                        y - 1,
-                        y + textRenderer.fontHeight + 1,
-                        caretColor
-                );
+        DrawingUtils.pushClip(ctx, m.x, m.y, m.w, m.h);
+        try {
+            if (model.length() == 0) {
+                renderEmptyState(ctx, m);
+            } else {
+                renderLinesBlock(ctx, lines, firstLine, yOffset, m);
             }
-        } else {
-            int globalIndex = indexAtLineStart(lines, firstLine);
-            for (int i = firstLine; i < lines.size(); i++) {
-                int lineY = y + yOffset + (i - firstLine) * lh;
-                if (lineY > y + h) break;
+        } finally {
+            DrawingUtils.popClip(ctx);
+        }
+    }
 
-                String line = lines.get(i);
-
-                if (model.hasSelection()) {
-                    renderSelectionLine(ctx, x, lineY, w, line, globalIndex);
-                }
-
-                textComponent.cloneWithNewText(line)
-                        .verticalAlign(TextComponent.VerticalAlign.TOP)
-                        .render(ctx, x, lineY, w, textRenderer.fontHeight);
-
-                if (isFocused() && caretVisible) {
-                    renderCaretIfOnLine(ctx, x, lineY, line, globalIndex);
-                }
-
-                globalIndex += line.length() + 1;
-            }
+    private void renderEmptyState(DrawContext ctx, Metrics m) {
+        if (!isFocused()) {
+            placeholderComponent
+                    .verticalAlign(TextComponent.VerticalAlign.TOP)
+                    .render(ctx, m.x, m.y, m.w, m.h);
+            return;
         }
 
-        DrawingUtils.popClip(ctx);
+        if (!caretVisible) return;
+
+        int caretColor = (textComponent != null && textComponent.hasCustomStyling())
+                ? (textComponent.getColor() | 0xFF000000)
+                : (getComputedStyles().getTextColor() | 0xFF000000);
+
+        DrawingUtils.drawVLine(
+                ctx,
+                m.x,
+                m.y - 1,
+                m.y + textRenderer.fontHeight + 1,
+                caretColor
+        );
+    }
+
+    private void renderLinesBlock(DrawContext ctx, List<String> lines, int firstLine, int yOffset, Metrics m) {
+        int globalIndex = indexAtLineStart(lines, firstLine);
+
+        for (int i = firstLine; i < lines.size(); i++) {
+            int lineY = m.y + yOffset + (i - firstLine) * m.lh;
+            if (lineY > m.y + m.h) break;
+
+            String line = lines.get(i);
+
+            if (model.hasSelection()) {
+                renderSelectionLine(ctx, m.x, lineY, m.w, line, globalIndex);
+            }
+
+            textComponent.cloneWithNewText(line)
+                    .verticalAlign(TextComponent.VerticalAlign.TOP)
+                    .render(ctx, m.x, lineY, m.w, textRenderer.fontHeight);
+
+            if (isFocused() && caretVisible) {
+                renderCaretIfOnLine(ctx, m.x, lineY, line, globalIndex);
+            }
+
+            globalIndex += line.length() + 1;
+        }
     }
 
 
     private void renderSelectionLine(DrawContext ctx, int x, int lineY, int w, String line, int globalStart) {
         int lh = textRenderer.fontHeight;
-        int s = model.getSelectionStart(), e = model.getSelectionEnd();
+        int s = model.getSelectionStart();
+        int e = model.getSelectionEnd();
         int lineEnd = globalStart + line.length();
-        int rs = Math.max(globalStart, Math.min(lineEnd, s));
-        int re = Math.max(globalStart, Math.min(lineEnd, e));
+        int rs = Math.clamp(s, globalStart, lineEnd);
+        int re = Math.clamp(e, globalStart, lineEnd);
         if (re <= rs) return;
         int sx = x + textRenderer.getWidth(line.substring(0, rs - globalStart));
         int ex = x + textRenderer.getWidth(line.substring(0, re - globalStart));
@@ -257,10 +332,10 @@ public class TextAreaItem extends BaseItem {
         int lineEnd = globalStart + line.length();
         if (c < globalStart || c > lineEnd) return;
         int col = c - globalStart;
-        int cx = x + textRenderer.getWidth(line.substring(0, Math.max(0, Math.min(col, line.length()))));
+        int cx = x + textRenderer.getWidth(line.substring(0, Math.clamp(col, 0, line.length())));
         int caretColor = (textComponent != null && textComponent.hasCustomStyling())
                         ? (textComponent.getColor() | 0xFF000000)
-                        : (getComputedStyles().textColor | 0xFF000000);
+                        : (getComputedStyles().getTextColor() | 0xFF000000);
 
         DrawingUtils.drawVLine(ctx, cx, lineY - 1, lineY + lh + 1, caretColor);
     }
@@ -290,14 +365,14 @@ public class TextAreaItem extends BaseItem {
 
     private int lineStart(int caret) {
         String t = model.getText();
-        int i = Math.max(0, Math.min(caret, t.length()));
+        int i = Math.clamp(caret, 0, t.length());
         while (i > 0 && t.charAt(i - 1) != '\n') i--;
         return i;
     }
 
     private int lineEnd(int caret) {
         String t = model.getText();
-        int i = Math.max(0, Math.min(caret, t.length()));
+        int i = Math.clamp(caret, 0, t.length());
         int n = t.length();
         while (i < n && t.charAt(i) != '\n') i++;
         return i;
@@ -311,13 +386,15 @@ public class TextAreaItem extends BaseItem {
 
     private void moveCaretVertical(int dir, boolean extend) {
         int c = model.getCaret();
-        int ls = lineStart(c), le = lineEnd(c);
+        int ls = lineStart(c);
+        int le = lineEnd(c);
         int x = preferredCaretX >= 0 ? preferredCaretX : caretPixelXInLine(c);
-        int targetPos = c;
+        int targetPos;
         if (dir < 0) {
             if (ls == 0) { targetPos = 0; }
             else {
-                int pls = lineStart(ls - 1), ple = le == ls ? ls - 1 : ls - 1;
+                int pls = lineStart(ls - 1);
+                int ple = ls - 1;
                 String prev = model.getText().substring(pls, ple);
                 targetPos = pls + columnAtPixel(prev, x);
             }
@@ -325,7 +402,8 @@ public class TextAreaItem extends BaseItem {
             int n = model.length();
             if (le >= n) { targetPos = n; }
             else {
-                int nls = le + 1, nle = lineEnd(le + 1);
+                int nls = le + 1;
+                int nle = lineEnd(le + 1);
                 String next = model.getText().substring(nls, nle);
                 targetPos = nls + columnAtPixel(next, x);
             }
@@ -335,10 +413,12 @@ public class TextAreaItem extends BaseItem {
     }
 
     private int columnAtPixel(String line, int px) {
-        int col = 0, acc = 0;
+        int col = 0;
+        int acc = 0;
         for (int i = 0; i <= line.length(); i++) {
             int w = textRenderer.getWidth(line.substring(0, i));
-            if (w <= px) { col = i; acc = w; } else break;
+            if (w <= px) { col = i;
+            } else break;
         }
         return col;
     }
@@ -355,7 +435,8 @@ public class TextAreaItem extends BaseItem {
 
     private int caretLineIndex() {
         String t = model.getText();
-        int idx = model.getCaret(), line = 0;
+        int idx = model.getCaret();
+        int line = 0;
         for (int i = 0; i < Math.min(idx, t.length()); i++) if (t.charAt(i) == '\n') line++;
         return line;
     }
@@ -373,7 +454,8 @@ public class TextAreaItem extends BaseItem {
         List<String> lines = computeLines(model.getText(), w);
         int lh = textRenderer.fontHeight + lineSpacing;
         int my = (int) Math.max(0, mouseY - y) + scrollY;
-        int lineIdx = Math.max(0, Math.min(lines.size() - 1, my / lh));
+        int maxIndex = Math.max(0, lines.size() - 1);
+        int lineIdx  = Math.clamp(my / lh, 0, maxIndex);
         String line = lines.isEmpty() ? "" : lines.get(lineIdx);
         int idxInLine = 0;
         int relX = (int) Math.max(0, mouseX - x);
@@ -382,13 +464,13 @@ public class TextAreaItem extends BaseItem {
             if (width <= relX) idxInLine = i; else break;
         }
         int global = indexAtLineStart(lines, lineIdx) + idxInLine;
-        model.setCaret(Math.max(0, Math.min(global, model.length())));
+        model.setCaret(Math.clamp(global, 0, model.length()));
         preferredCaretX = caretPixelXInLine(model.getCaret());
         ensureCaretVisible();
     }
 
     private void moveCaret(int newIndex, boolean extend) {
-        newIndex = Math.max(0, Math.min(newIndex, model.length()));
+        newIndex = Math.clamp(newIndex, 0, model.length());
         if (extend) {
             if (!model.hasSelection()) model.setSelection(model.getCaret(), newIndex);
             else model.setSelection(model.getSelectionStart(), newIndex);
@@ -399,6 +481,7 @@ public class TextAreaItem extends BaseItem {
         caretVisible = true; lastBlink = System.currentTimeMillis();
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     private int backgroundForState(int base) {
         return switch (getState()) {
             case HOVERED -> brighten(base, hasClass(StyleKey.HOVER_BRIGHTEN) ? 0.20f : 0.08f);
@@ -407,7 +490,10 @@ public class TextAreaItem extends BaseItem {
     }
 
     private int brighten(int color, float ratio) {
-        int a = (color >>> 24) & 0xFF, r = (color >>> 16) & 0xFF, g = (color >>> 8) & 0xFF, b = color & 0xFF;
+        int a = (color >>> 24) & 0xFF;
+        int r = (color >>> 16) & 0xFF;
+        int g = (color >>> 8) & 0xFF;
+        int b = color & 0xFF;
         r = Math.min(255, Math.round(r + (255 - r) * ratio));
         g = Math.min(255, Math.round(g + (255 - g) * ratio));
         b = Math.min(255, Math.round(b + (255 - b) * ratio));
@@ -420,7 +506,7 @@ public class TextAreaItem extends BaseItem {
                     .align(TextComponent.TextAlign.LEFT)
                     .verticalAlign(TextComponent.VerticalAlign.TOP)
                     .setSafetyMargin(textSafetyMargin)
-                    .color(getComputedStyles().textColor);
+                    .color(getComputedStyles().getTextColor());
         }
         return textComponent;
     }

@@ -6,6 +6,7 @@ package com.edgn.ui.template;
  * If the user choses to set the TemplateSettings to null we will simply return the default settings
  * @author EDGN
  */
+@SuppressWarnings("unused")
 public class TemplateSettings {
     private boolean header = true;
     private boolean footer = true;

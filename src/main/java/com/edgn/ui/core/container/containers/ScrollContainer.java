@@ -8,8 +8,6 @@ import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.layout.ZIndex;
 import net.minecraft.client.gui.DrawContext;
 
-import java.util.List;
-
 @SuppressWarnings("unused")
 public class ScrollContainer extends BaseContainer {
 
@@ -72,47 +70,58 @@ public class ScrollContainer extends BaseContainer {
     }
 
     @Override
-    protected int getChildInteractionOffsetX(UIElement child) {
+    public int getChildInteractionOffsetX(UIElement child) {
         if (child instanceof ScrollbarItem) return 0;
         if (child.ignoresParentScroll()) return 0;
         return -scrollX;
     }
 
     @Override
-    protected int getChildInteractionOffsetY(UIElement child) {
+    public int getChildInteractionOffsetY(UIElement child) {
         if (child instanceof ScrollbarItem) return 0;
         if (child.ignoresParentScroll()) return 0;
         return -scrollY;
     }
-
-    protected void layoutChildren() {}
-
     protected void computeContentSize() {
-        List<UIElement> children = getChildren();
-        if (children.isEmpty()) { contentWidth = 0; contentHeight = 0; return; }
-        int originX = getViewportX();
-        int originY = getViewportY();
-        int minRX = Integer.MAX_VALUE;
-        int minRY = Integer.MAX_VALUE;
-        int maxRX = Integer.MIN_VALUE;
-        int maxRY = Integer.MIN_VALUE;
-        for (UIElement child : children) {
-            if (!child.isVisible()) continue;
-            if (child instanceof ScrollbarItem) continue;
+        final int originX = getViewportX();
+        final int originY = getViewportY();
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int maxY = Integer.MIN_VALUE;
+
+        boolean any = false;
+
+        for (UIElement child : getChildren()) {
+            if (child == null || !child.isVisible() || child instanceof ScrollbarItem) continue;
+
             child.updateConstraints();
-            int cx = child.getCalculatedX();
-            int cy = child.getCalculatedY();
-            int cw = child.getCalculatedWidth();
-            int ch = child.getCalculatedHeight();
-            int rx = cx - originX;
-            int ry = cy - originY;
-            if (rx < minRX) minRX = rx;
-            if (ry < minRY) minRY = ry;
-            if (rx + cw > maxRX) maxRX = rx + cw;
-            if (ry + ch > maxRY) maxRY = ry + ch;
+
+            final int rx = child.getCalculatedX() - originX;
+            final int ry = child.getCalculatedY() - originY;
+            final int rw = child.getCalculatedWidth();
+            final int rh = child.getCalculatedHeight();
+
+            minX = Math.min(minX, rx);
+            minY = Math.min(minY, ry);
+            maxX = Math.max(maxX, rx + rw);
+            maxY = Math.max(maxY, ry + rh);
+
+            any = true;
         }
-        if (minRX == Integer.MAX_VALUE) { contentWidth = 0; contentHeight = 0; }
-        else { contentWidth = Math.max(0, maxRX - Math.min(0, minRX)); contentHeight = Math.max(0, maxRY - Math.min(0, minRY)); }
+
+        if (!any) {
+            contentWidth = 0;
+            contentHeight = 0;
+            return;
+        }
+
+        int width = maxX - Math.min(0, minX);
+        int height = maxY - Math.min(0, minY);
+
+        contentWidth = Math.clamp(width, 0, Integer.MAX_VALUE);
+        contentHeight = Math.clamp(height, 0, Integer.MAX_VALUE);
     }
 
     protected void clampScroll() {
@@ -213,62 +222,85 @@ public class ScrollContainer extends BaseContainer {
     @Override
     public void render(DrawContext context) {
         if (!visible) {
-            markAsNotRendered();
-            List<UIElement> cs = getChildren();
-            for (UIElement c : cs) c.markAsNotRendered();
+            markNotRenderedDeep();
             return;
         }
+
         markAsRendered();
+        prepareLayoutAndScroll();
+
+        final int vpMinX = getViewportX();
+        final int vpMinY = getViewportY();
+        final int vpMaxX = vpMinX + getViewportWidth();
+        final int vpMaxY = vpMinY + getViewportHeight();
+
+        final int inMinX = calculatedX + getPaddingLeft();
+        final int inMinY = calculatedY + getPaddingTop();
+        final int inMaxX = inMinX + baseViewportWidth();
+        final int inMaxY = inMinY + baseViewportHeight();
+
+        withScissor(context, vpMinX, vpMinY, vpMaxX, vpMaxY, () -> {
+            context.getMatrices().push();
+            context.getMatrices().translate(-scrollX, -scrollY, 0.0f);
+            renderChildren(context, false);
+            context.getMatrices().pop();
+        });
+
+        withScissor(context, inMinX, inMinY, inMaxX, inMaxY,
+                () -> renderChildren(context, true));
+    }
+
+
+    private void markNotRenderedDeep() {
+        markAsNotRendered();
+        for (UIElement c : getChildren()) {
+            if (c != null) c.markAsNotRendered();
+        }
+    }
+
+    private void prepareLayoutAndScroll() {
         updateConstraints();
+        performLayoutCycle();
 
-        layoutChildren();
-        computeContentSize();
-        clampScroll();
-
-        boolean changed = updateReservesOnce();
-        if (changed) {
-            layoutChildren();
-            computeContentSize();
-            clampScroll();
+        if (updateReservesOnce()) {
+            performLayoutCycle(); // recompute after reserves changed
         }
 
         ensureScrollbars();
         updateInteractionBounds();
+    }
 
-        int vpMinX = getViewportX();
-        int vpMinY = getViewportY();
-        int vpMaxX = vpMinX + getViewportWidth();
-        int vpMaxY = vpMinY + getViewportHeight();
+    private void performLayoutCycle() {
+        layoutChildren();
+        computeContentSize();
+        clampScroll();
+    }
 
-        int inMinX = calculatedX + getPaddingLeft();
-        int inMinY = calculatedY + getPaddingTop();
-        int inMaxX = inMinX + baseViewportWidth();
-        int inMaxY = inMinY + baseViewportHeight();
-
-        context.enableScissor(vpMinX, vpMinY, vpMaxX, vpMaxY);
-        try {
-            for (UIElement child : getChildren()) {
-                if (child == null || !child.isVisible()) continue;
-                if (child instanceof ScrollbarItem) continue;
-                context.getMatrices().push();
-                context.getMatrices().translate((float) -scrollX, (float) -scrollY, 0.0f);
-                child.renderElement(context);
-                context.getMatrices().pop();
-            }
-        } finally {
-            context.disableScissor();
+    private void renderChildren(DrawContext context, boolean includeScrollbars) {
+        for (UIElement child : getChildren()) {
+            if (!isRenderable(child)) continue;
+            boolean isScrollbar = child instanceof ScrollbarItem;
+            if (includeScrollbars != isScrollbar) continue;
+            child.renderElement(context);
         }
+    }
 
-        context.enableScissor(inMinX, inMinY, inMaxX, inMaxY);
+    private boolean isRenderable(UIElement child) {
+        return child != null && child.isVisible();
+    }
+
+    private void withScissor(DrawContext ctx, int x1, int y1, int x2, int y2, Runnable draw) {
+        ctx.enableScissor(x1, y1, x2, y2);
         try {
-            for (UIElement child : getChildren()) {
-                if (child == null || !child.isVisible()) continue;
-                if (!(child instanceof ScrollbarItem)) continue;
-                child.renderElement(context);
-            }
+            draw.run();
         } finally {
-            context.disableScissor();
+            ctx.disableScissor();
         }
+    }
+
+    @Override
+    protected void layoutChildren() {
+        /* not necessary */
     }
 
     @Override

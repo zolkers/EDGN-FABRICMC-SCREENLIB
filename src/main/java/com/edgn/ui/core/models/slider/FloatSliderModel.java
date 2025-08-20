@@ -7,16 +7,12 @@ public class FloatSliderModel implements SliderModel<Float> {
     private float step;
 
     public FloatSliderModel() { this(0f, 0f, 1f, 0.01f); }
-    public FloatSliderModel(float value, float min, float max, float step) {
-        if (max < min) {
-            float t=min;
-            min=max;
-            max=t;
 
-        }
-        this.min=min;
-        this.max=max;
-        this.step=Math.max(Float.MAX_VALUE, step);
+    public FloatSliderModel(float value, float min, float max, float step) {
+        if (max < min) { float t = min; min = max; max = t; }
+        this.min = min;
+        this.max = max;
+        this.step = Math.clamp(step, 1e-6f, Float.MAX_VALUE);
         set(value);
     }
 
@@ -31,8 +27,11 @@ public class FloatSliderModel implements SliderModel<Float> {
     }
 
     @Override public Float step(){ return step; }
-    @Override public void setStep(Float s){ this.step=Math.max(1e-6f, s); set(value); }
-
+    @Override
+    public void setStep(Float s) {
+        this.step = Math.clamp(s, 1e-6f, Float.MAX_VALUE);
+        set(value);
+    }
     @Override
     public Float clampSnap(Float v) {
         float x = Math.clamp(v, min, max);

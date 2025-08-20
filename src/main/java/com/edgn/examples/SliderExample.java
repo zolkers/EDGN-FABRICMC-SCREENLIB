@@ -53,9 +53,19 @@ public class SliderExample extends BaseTemplate {
                 .addClass(StyleKey.FLEX_BASIS_25);
 
         SliderItem<Float> floatSliderItem = new SliderItem<>(uiSystem, 0, 0, 160, 28, new FloatSliderModel())
+                .trackHeight(6)
+                .thumbSize(15)
+                .trackColor(ColorUtils.NamedColor.AQUAMARINE.toInt())
+                .fillColor(ColorUtils.NamedColor.CORNSILK.toInt())
+                .thumbColor(ColorUtils.NamedColor.IVORY.toInt())
                 .addClass(StyleKey.FLEX_BASIS_25);
 
         SliderItem<Double> doubleSliderItem = new SliderItem<>(uiSystem, 0, 0, 160, 28, new DoubleSliderModel())
+                .trackHeight(6)
+                .thumbSize(12)
+                .trackColor(ColorUtils.NamedColor.AQUAMARINE.toInt())
+                .fillColor(ColorUtils.NamedColor.CORNSILK.toInt())
+                .thumbColor(ColorUtils.NamedColor.IVORY.toInt())
                 .addClass(StyleKey.FLEX_BASIS_25);
 
         return content.addChild(intSliderItem).addChild(floatSliderItem).addChild(doubleSliderItem);

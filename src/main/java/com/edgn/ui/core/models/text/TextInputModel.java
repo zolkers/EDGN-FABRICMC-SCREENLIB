@@ -25,4 +25,6 @@ public interface TextInputModel extends Model {
     void delete(boolean byWord);
     int wordLeft();
     int wordRight();
+    void undo();
+    void redo();
 }

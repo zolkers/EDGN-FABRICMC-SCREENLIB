@@ -38,17 +38,11 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
         setPlaceholder(placeholder);
     }
 
-    // ===================================================================
-    // AJOUTEZ CETTE MÉTHODE
-    // ===================================================================
     @Override
     public void onFocusLost() {
         super.onFocusLost();
-        lastClickTime = 0; // Réinitialise le timer du double-clic
+        lastClickTime = 0;
     }
-    // ===================================================================
-    // FIN DE L'AJOUT
-    // ===================================================================
 
     @SuppressWarnings("unchecked")
     protected T self() { return (T) this; }
@@ -155,6 +149,7 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
         if (!isFocused()) setState(ItemState.NORMAL);
     }
 
+
     @Override
     public boolean onKeyPress(int key, int sc, int mods) {
         if (!enabled || !isFocused()) return false;
@@ -176,6 +171,8 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
                     case "c" -> { copySelection(); return true; }
                     case "x" -> { cutSelection(); return true; }
                     case "v" -> { pasteClipboard(); onPasteComplete(); return true; }
+                    case "z" -> { model.undo(); onTextModified(); return true; }
+                    case "y" -> { model.redo(); onTextModified(); return true; }
                     default -> {/*useless*/}
                 }
             }
@@ -292,10 +289,7 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
         MinecraftClient.getInstance().keyboard.setClipboard(
                 model.getText().substring(model.getSelectionStart(), model.getSelectionEnd())
         );
-        String before = model.getText().substring(0, model.getSelectionStart());
-        String after = model.getText().substring(model.getSelectionEnd());
-        model.setText(before + after);
-        model.setCaret(before.length());
+        model.delete(false); // Utilise la méthode delete qui gère l'historique
         onTextModified();
     }
 

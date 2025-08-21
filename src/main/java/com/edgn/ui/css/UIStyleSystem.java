@@ -175,14 +175,6 @@ public class UIStyleSystem {
         return 0;
     }
 
-    public float getOpacity(StyleKey key) {
-        Object value = styleValues.get(key);
-        if (value instanceof Float floatValue) {
-            return floatValue;
-        }
-        return 1.0f;
-    }
-
     public static int applyOpacity(int color, float opacity) {
         int alpha = (color >> 24) & 0xFF;
         int red = (color >> 16) & 0xFF;
@@ -192,10 +184,6 @@ public class UIStyleSystem {
         int newAlpha = Math.round(alpha * Math.clamp(opacity, 0.0f, 1.0f));
 
         return (newAlpha << 24) | (red << 16) | (green << 8) | blue;
-    }
-
-    public static boolean isOpacityKey(StyleKey key) {
-        return key.name().startsWith("BG_OPACITY_");
     }
 
     public Map<StyleKey, Object> getStyleValues() { return styleValues; }

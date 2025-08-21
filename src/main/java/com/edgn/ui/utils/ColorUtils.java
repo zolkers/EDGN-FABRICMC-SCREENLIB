@@ -2,11 +2,18 @@ package com.edgn.ui.utils;
 
 import java.util.Locale;
 
+/**
+ * Utility class for colors
+ * @author EDGN
+ */
 @SuppressWarnings({"unused"})
 public class ColorUtils {
 
     private ColorUtils() {/* utility class */}
 
+    /**
+     * NamedColor represents commonly used colors (which are named obvious no ?)
+     */
     public enum NamedColor {
         ALICEBLUE(0xFFF0F8FF),
         ANTIQUEWHITE(0xFFFAEBD7),
@@ -153,19 +160,45 @@ public class ColorUtils {
         private final int argb;
 
         NamedColor(int argb) { this.argb = argb; }
+
+        /**
+         * Gets the value of a named color
+         * @return the Integer
+         */
         public int toInt() { return argb; }
 
+        /**
+         * Get a NamedColor from the name
+         * @param name the name of a color
+         * @return the NamedColor
+         */
         public static NamedColor fromName(String name) {
             if (name == null) return null;
             String n = name.trim().toUpperCase(Locale.ROOT).replace(" ", "");
             try { return NamedColor.valueOf(n); } catch (IllegalArgumentException ignored) { return null; }
         }
 
+        /**
+         * Returns all the names under a String of the NamedColors
+         * @return names
+         */
         public static String[] names() {
             NamedColor[] vals = values();
             String[] out = new String[vals.length];
             for (int i = 0; i < vals.length; i++) out[i] = vals[i].name().toLowerCase(Locale.ROOT);
             return out;
         }
+    }
+
+    /**
+     * Sets the opacity of the method
+     * @param color any kind of color as long as it is an Integer ( use NamedColor )
+     * @param opacity a value between 0 and 1
+     * @return the color with the changed opacity
+     */
+    public static int setOpacity(int color, float opacity) {
+        float alpha = Math.clamp(opacity, 0.0f, 1.0f);
+        int newAlpha = (int) (alpha * 255);
+        return (newAlpha << 24) | (color & 0x00FFFFFF);
     }
 }

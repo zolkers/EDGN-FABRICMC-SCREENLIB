@@ -36,8 +36,7 @@ public final class TextFieldExample extends BaseTemplate {
                         StyleKey.ITEMS_STRETCH,
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_4,
-                        StyleKey.M_4,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.M_4
                 );
 
         TextFieldItem field = new TextFieldItem(uiSystem, 0, 0, 160, 28)

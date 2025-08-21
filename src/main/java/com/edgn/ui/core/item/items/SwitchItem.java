@@ -8,6 +8,7 @@ import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import com.edgn.ui.core.renderer.FontRenderer;
+import com.edgn.ui.utils.ColorUtils;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
 
@@ -94,7 +95,7 @@ public class SwitchItem extends BaseItem {
         DrawingUtils.drawRoundedRect(context, thumbX, thumbY, thumbSize, thumbSize, thumbSize / 2, thumbColor);
 
         if (isFocused() && hasClass(StyleKey.FOCUS_RING)) {
-            int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
+            int focusColor = ColorUtils.NamedColor.ALICEBLUE.toInt();
             DrawingUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, Math.max(trackRadius, h / 2) + 4, focusColor, 2);
         }
     }

@@ -30,7 +30,7 @@ public class TextAreaItem extends AbstractTextItem<TextAreaItem> {
 
     public TextAreaItem(UIStyleSystem styleSystem, int x, int y, int w, int h) {
         super(styleSystem, x, y, w, h);
-        addClass(StyleKey.BG_SURFACE, StyleKey.ROUNDED_MD, StyleKey.P_2);
+        addClass(StyleKey.ROUNDED_MD, StyleKey.P_2);
     }
 
     public TextAreaItem(UIStyleSystem styleSystem, int x, int y, int w, int h, String placeholder) {

@@ -38,8 +38,7 @@ public class BooleanExample extends BaseTemplate {
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_4,
                         StyleKey.P_2,
-                        StyleKey.M_4,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.M_4
                 );
 
         CheckboxItem cb = new CheckboxItem(uiSystem, 20, 20, 140, 24, new DefaultBooleanModel(false), "HEHEHEHEHEHE")

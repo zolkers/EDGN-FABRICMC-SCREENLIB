@@ -9,6 +9,7 @@ import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
+import com.edgn.ui.utils.ColorUtils;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
 
@@ -238,7 +239,7 @@ public class CheckboxItem extends BaseItem {
 
     private void renderFocusRing(DrawContext ctx) {
         if (isFocused() && hasClass(StyleKey.FOCUS_RING)) {
-            int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
+            int focusColor = ColorUtils.NamedColor.ALICEBLUE.toInt();
             int cx = getCalculatedX();
             int cy = getCalculatedY();
             int cw = getCalculatedWidth();

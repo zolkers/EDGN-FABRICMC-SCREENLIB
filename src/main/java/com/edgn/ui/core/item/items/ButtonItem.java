@@ -8,6 +8,7 @@ import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
+import com.edgn.ui.utils.ColorUtils;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
 
@@ -18,7 +19,7 @@ public class ButtonItem extends BaseItem {
 
     public ButtonItem(UIStyleSystem styleSystem, int x, int y, int width, int height) {
         super(styleSystem, x, y, width, height);
-        addClass(StyleKey.PRIMARY, StyleKey.ROUNDED_MD, StyleKey.P_2, StyleKey.TEXT_WHITE);
+        addClass(StyleKey.ROUNDED_MD, StyleKey.P_2);
     }
 
     public ButtonItem(UIStyleSystem styleSystem, int x, int y, int width, int height, String text) {
@@ -149,7 +150,7 @@ public class ButtonItem extends BaseItem {
         int ch = getCalculatedHeight();
 
         int baseBg = getBgColor();
-        if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.PRIMARY);
+        if (baseBg == 0) baseBg = ColorUtils.NamedColor.BLUEVIOLET.toInt();
 
         int bg = backgroundForState(baseBg);
         int radius = getBorderRadius();
@@ -169,11 +170,6 @@ public class ButtonItem extends BaseItem {
         } else {
             if (shadow != null) DrawingUtils.drawShadow(context, cx, cy, cw, ch, 2, 2, shadow.color);
             DrawingUtils.drawRoundedRect(context, cx, cy, cw, ch, radius, bg);
-        }
-
-        if (isFocused() && hasClass(StyleKey.FOCUS_RING)) {
-            int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
-            DrawingUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, radius + 2, focusColor, 2);
         }
 
         renderText(context, cx, cy, cw, ch);

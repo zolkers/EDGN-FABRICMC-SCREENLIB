@@ -4,6 +4,7 @@ import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.CSSStyleApplier;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
+import com.edgn.ui.utils.ColorUtils;
 
 @SuppressWarnings("unused")
 public abstract class BaseItem extends UIElement implements IItem {
@@ -72,12 +73,12 @@ public abstract class BaseItem extends UIElement implements IItem {
     protected int getStateColor() {
         CSSStyleApplier.ComputedStyles styles = getComputedStyles();
         int baseColor = styles.getBackgroundColor();
-        if (baseColor == 0) baseColor = styleSystem.getColor(StyleKey.PRIMARY);
+        if (baseColor == 0) baseColor = ColorUtils.NamedColor.AQUAMARINE.toInt();
 
         return switch (state) {
             case HOVERED -> styles.isHasHoverEffect() ? brightenColor(baseColor, 20) : baseColor;
             case PRESSED -> darkenColor(baseColor);
-            case FOCUSED -> styles.isHasFocusRing() ? styleSystem.getColor(StyleKey.PRIMARY_LIGHT) : baseColor;
+            case FOCUSED -> styles.isHasFocusRing() ? ColorUtils.NamedColor.ALICEBLUE.toInt() : baseColor;
             case DISABLED -> fadeColor(baseColor);
             case ACTIVE -> brightenColor(baseColor, 30);
             default -> baseColor;

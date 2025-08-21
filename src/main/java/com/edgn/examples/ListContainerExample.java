@@ -34,15 +34,12 @@ public final class ListContainerExample extends BaseTemplate {
                         StyleKey.JUSTIFY_START,
                         StyleKey.GAP_3,
                         StyleKey.P_3,
-                        StyleKey.BG_SURFACE,
                         StyleKey.SHADOW_SM
                 );
 
         ButtonItem back = new ButtonItem(uiSystem, 0, 0, 120, 28)
                 .withText(new TextComponent("Back").color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
-                        StyleKey.SECONDARY,
-                        StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.P_2,
                         StyleKey.HOVER_SCALE,
@@ -65,15 +62,13 @@ public final class ListContainerExample extends BaseTemplate {
         ListContainer list = new ListContainer(uiSystem, 0, getHeaderHeight(), this.width, getContentHeight())
                 .setScrollable(true)
                 .setScrollAxes(true, false)
-                .addClass(StyleKey.P_4, StyleKey.GAP_3, StyleKey.BG_BACKGROUND);
+                .addClass(StyleKey.P_4, StyleKey.GAP_3);
 
         for (int i = 1; i <= 30; i++) {
             int finalI = i;
             ButtonItem item = new ButtonItem(uiSystem, 0, 0, this.width - 24, 44)
                     .withText(new TextComponent("Item " + i).color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                     .addClass(
-                            StyleKey.PRIMARY,
-                            StyleKey.TEXT_WHITE,
                             StyleKey.ROUNDED_MD,
                             StyleKey.P_3,
                             StyleKey.SHADOW_SM,

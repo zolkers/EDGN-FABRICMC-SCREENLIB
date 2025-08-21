@@ -1,9 +1,7 @@
 package com.edgn.ui.css;
 
 
-import com.edgn.ui.css.values.BorderRadius;
-import com.edgn.ui.css.values.Shadow;
-import com.edgn.ui.css.values.Spacing;
+import com.edgn.ui.css.values.*;
 import com.edgn.ui.event.UIEventManager;
 
 import java.util.EnumMap;
@@ -11,7 +9,6 @@ import java.util.Map;
 
 @SuppressWarnings("unused")
 public class UIStyleSystem {
-    private final Map<StyleKey, Integer> colorMap = new EnumMap<>(StyleKey.class);
     private final Map<StyleKey, Object> styleValues = new EnumMap<>(StyleKey.class);
     private final UIEventManager eventManager = new UIEventManager();
 
@@ -20,43 +17,6 @@ public class UIStyleSystem {
     }
 
     private void initializeDefaults() {
-        colorMap.put(StyleKey.PRIMARY, 0xFF0D6EFD);
-        colorMap.put(StyleKey.SECONDARY, 0xFF6C757D);
-        colorMap.put(StyleKey.SUCCESS, 0xFF198754);
-        colorMap.put(StyleKey.DANGER, 0xFFDC3545);
-        colorMap.put(StyleKey.WARNING, 0xFFFFC107);
-        colorMap.put(StyleKey.INFO, 0xFF0DCAF0);
-        colorMap.put(StyleKey.LIGHT, 0xFFF8F9FA);
-        colorMap.put(StyleKey.DARK, 0xFF212529);
-        colorMap.put(StyleKey.SURFACE, 0xFF2C2C2C);
-        colorMap.put(StyleKey.BACKGROUND, 0xFF1A1A1A);
-        colorMap.put(StyleKey.ACCENT, 0xFF7C3AED);
-        colorMap.put(StyleKey.MUTED, 0xFF6B7280);
-        colorMap.put(StyleKey.GLASS, 0x80FFFFFF);
-        colorMap.put(StyleKey.NEON, 0xFF00FFFF);
-
-        colorMap.put(StyleKey.PRIMARY_LIGHT, 0xFF6EA8FE);
-        colorMap.put(StyleKey.PRIMARY_DARK, 0xFF0A58CA);
-        colorMap.put(StyleKey.SUCCESS_LIGHT, 0xFF75B798);
-        colorMap.put(StyleKey.DANGER_LIGHT, 0xFFE1798C);
-
-        styleValues.put(StyleKey.BG_OPACITY_0, 0.0f);
-        styleValues.put(StyleKey.BG_OPACITY_1, 0.0625f);   
-        styleValues.put(StyleKey.BG_OPACITY_2, 0.125f);    
-        styleValues.put(StyleKey.BG_OPACITY_3, 0.1875f);   
-        styleValues.put(StyleKey.BG_OPACITY_4, 0.25f);     
-        styleValues.put(StyleKey.BG_OPACITY_5, 0.3125f);   
-        styleValues.put(StyleKey.BG_OPACITY_6, 0.375f);    
-        styleValues.put(StyleKey.BG_OPACITY_7, 0.4375f);   
-        styleValues.put(StyleKey.BG_OPACITY_8, 0.5f);      
-        styleValues.put(StyleKey.BG_OPACITY_9, 0.5625f);   
-        styleValues.put(StyleKey.BG_OPACITY_10, 0.625f);   
-        styleValues.put(StyleKey.BG_OPACITY_11, 0.6875f);  
-        styleValues.put(StyleKey.BG_OPACITY_12, 0.75f);    
-        styleValues.put(StyleKey.BG_OPACITY_13, 0.8125f);  
-        styleValues.put(StyleKey.BG_OPACITY_14, 0.875f);   
-        styleValues.put(StyleKey.BG_OPACITY_15, 0.9375f);  
-
         styleValues.put(StyleKey.ROUNDED_NONE, BorderRadius.NONE.value);    
         styleValues.put(StyleKey.ROUNDED_SM, BorderRadius.SM.value);        
         styleValues.put(StyleKey.ROUNDED_MD, BorderRadius.MD.value);        
@@ -166,29 +126,29 @@ public class UIStyleSystem {
         styleValues.put(StyleKey.GAP_4, Spacing.LG.value);     
         styleValues.put(StyleKey.GAP_5, Spacing.XL.value);     
         styleValues.put(StyleKey.GAP_6, Spacing.XXL.value);    
-        styleValues.put(StyleKey.GAP_8, Spacing.XXXL.value);   
+        styleValues.put(StyleKey.GAP_8, Spacing.XXXL.value);
 
-        styleValues.put(StyleKey.FLEX_BASIS_0,   0);
-        styleValues.put(StyleKey.FLEX_BASIS_10, 10);
-        styleValues.put(StyleKey.FLEX_BASIS_15, 15);
-        styleValues.put(StyleKey.FLEX_BASIS_20, 20);
-        styleValues.put(StyleKey.FLEX_BASIS_25, 25);
-        styleValues.put(StyleKey.FLEX_BASIS_30, 30);
-        styleValues.put(StyleKey.FLEX_BASIS_33, 33);
-        styleValues.put(StyleKey.FLEX_BASIS_40, 40);
-        styleValues.put(StyleKey.FLEX_BASIS_50, 50);
-        styleValues.put(StyleKey.FLEX_BASIS_60, 60);
-        styleValues.put(StyleKey.FLEX_BASIS_66, 66);
-        styleValues.put(StyleKey.FLEX_BASIS_75, 75);
-        styleValues.put(StyleKey.FLEX_BASIS_100, 100);
+        styleValues.put(StyleKey.FLEX_BASIS_0,   FlexBasis.BASIS_0.value);
+        styleValues.put(StyleKey.FLEX_BASIS_10,  FlexBasis.BASIS_10.value);
+        styleValues.put(StyleKey.FLEX_BASIS_15,  FlexBasis.BASIS_15.value);
+        styleValues.put(StyleKey.FLEX_BASIS_20,  FlexBasis.BASIS_20.value);
+        styleValues.put(StyleKey.FLEX_BASIS_25,  FlexBasis.BASIS_25.value);
+        styleValues.put(StyleKey.FLEX_BASIS_30,  FlexBasis.BASIS_30.value);
+        styleValues.put(StyleKey.FLEX_BASIS_33,  FlexBasis.BASIS_33.value);
+        styleValues.put(StyleKey.FLEX_BASIS_40,  FlexBasis.BASIS_40.value);
+        styleValues.put(StyleKey.FLEX_BASIS_50,  FlexBasis.BASIS_50.value);
+        styleValues.put(StyleKey.FLEX_BASIS_60,  FlexBasis.BASIS_60.value);
+        styleValues.put(StyleKey.FLEX_BASIS_66,  FlexBasis.BASIS_66.value);
+        styleValues.put(StyleKey.FLEX_BASIS_75,  FlexBasis.BASIS_75.value);
+        styleValues.put(StyleKey.FLEX_BASIS_100, FlexBasis.BASIS_100.value);
 
-        styleValues.put(StyleKey.FLEX_GROW_0, 0);
-        styleValues.put(StyleKey.FLEX_GROW_1, 1);
-        styleValues.put(StyleKey.FLEX_GROW_2, 2);
-        styleValues.put(StyleKey.FLEX_GROW_3, 3);
+        styleValues.put(StyleKey.FLEX_GROW_0, FlexGrow.GROW_0.value);
+        styleValues.put(StyleKey.FLEX_GROW_1, FlexGrow.GROW_1.value);
+        styleValues.put(StyleKey.FLEX_GROW_2, FlexGrow.GROW_2.value);
+        styleValues.put(StyleKey.FLEX_GROW_3, FlexGrow.GROW_3.value);
 
-        styleValues.put(StyleKey.FLEX_SHRINK_0, 0);
-        styleValues.put(StyleKey.FLEX_SHRINK_1, 1);
+        styleValues.put(StyleKey.FLEX_SHRINK_0, FlexShrink.SHRINK_0.value);
+        styleValues.put(StyleKey.FLEX_SHRINK_1, FlexShrink.SHRINK_1.value);
 
         styleValues.put(StyleKey.SHADOW_NONE, Shadow.NONE);
         styleValues.put(StyleKey.SHADOW_SM, Shadow.SM);
@@ -197,18 +157,15 @@ public class UIStyleSystem {
         styleValues.put(StyleKey.SHADOW_XL, Shadow.XL);
         styleValues.put(StyleKey.SHADOW_GLOW, Shadow.GLOW);
 
-        styleValues.put(StyleKey.HOVER_SCALE, 1.05f);
-        styleValues.put(StyleKey.HOVER_BRIGHTEN, 1.2f);
-        styleValues.put(StyleKey.HOVER_OPACITY, 0.8f);
-        styleValues.put(StyleKey.HOVER_ROTATE, 5.0f);
+        styleValues.put(StyleKey.HOVER_SCALE, HoverEffect.SCALE.value);
+        styleValues.put(StyleKey.HOVER_BRIGHTEN, HoverEffect.BRIGHTEN.value);
+        styleValues.put(StyleKey.HOVER_OPACITY, HoverEffect.OPACITY.value);
+        styleValues.put(StyleKey.HOVER_ROTATE, HoverEffect.ROTATE.value);
 
-        styleValues.put(StyleKey.FOCUS_RING, true);
-        styleValues.put(StyleKey.FOCUS_OUTLINE, true);
-        styleValues.put(StyleKey.ACTIVE_SCALE, 0.95f);
-    }
+        styleValues.put(StyleKey.FOCUS_RING, FocusEffect.RING.value);
+        styleValues.put(StyleKey.FOCUS_OUTLINE, FocusEffect.OUTLINE.value);
 
-    public int getColor(StyleKey key) {
-        return colorMap.getOrDefault(key, 0xFFFFFFFF);
+        styleValues.put(StyleKey.ACTIVE_SCALE, ActiveEffect.SCALE.value);
     }
 
     public int getValue(StyleKey key) {
@@ -237,17 +194,10 @@ public class UIStyleSystem {
         return (newAlpha << 24) | (red << 16) | (green << 8) | blue;
     }
 
-    public int getColorWithOpacity(StyleKey baseColorKey, StyleKey opacityKey) {
-        int baseColor = getColor(baseColorKey);
-        float opacity = getOpacity(opacityKey);
-        return applyOpacity(baseColor, opacity);
-    }
-
     public static boolean isOpacityKey(StyleKey key) {
         return key.name().startsWith("BG_OPACITY_");
     }
 
     public Map<StyleKey, Object> getStyleValues() { return styleValues; }
-    public Map<StyleKey, Integer> getColorMap() { return colorMap; }
     public UIEventManager getEventManager() { return eventManager; }
 }

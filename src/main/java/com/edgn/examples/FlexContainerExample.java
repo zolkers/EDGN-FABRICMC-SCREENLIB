@@ -33,14 +33,12 @@ public final class FlexContainerExample extends BaseTemplate {
                         StyleKey.JUSTIFY_START,
                         StyleKey.GAP_3,
                         StyleKey.P_1,
-                        StyleKey.BG_SURFACE,
                         StyleKey.SHADOW_SM
                 );
 
         ButtonItem toList = new ButtonItem(uiSystem, 0, 0, 160, 28)
                 .withText(new TextComponent("List Container").pulse())
                 .addClass(
-                        StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.HOVER_SCALE,
                         StyleKey.FOCUS_RING,
@@ -52,7 +50,6 @@ public final class FlexContainerExample extends BaseTemplate {
                 .withText(new TextComponent("Grid Container")
                         .color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
-                        StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.HOVER_SCALE,
                         StyleKey.FOCUS_RING,
@@ -74,8 +71,7 @@ public final class FlexContainerExample extends BaseTemplate {
                         StyleKey.ITEMS_STRETCH,
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_4,
-                        StyleKey.P_4,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.P_4
                 );
 
         content.addChild(button(uiSystem, "Text Field example")
@@ -107,8 +103,7 @@ public final class FlexContainerExample extends BaseTemplate {
     protected BaseContainer createFooter() {
         FlexContainer footer = new FlexContainer(uiSystem, 0, getContentHeight(), this.width, getFooterHeight())
                 .addClass(
-                        StyleKey.P_1,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.P_1
                 );
 
         footer.addChild(button(uiSystem, "Crash me")
@@ -124,14 +119,11 @@ public final class FlexContainerExample extends BaseTemplate {
         return new ButtonItem(ui, 0, 0, 220, 48)
                 .withText(new TextComponent(label).rainbow(TextComponent.EffectMode.HORIZONTAL_LTR))
                 .addClass(
-                        StyleKey.PRIMARY,
-                        StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_LG,
                         StyleKey.P_3,
                         StyleKey.SHADOW_MD,
                         StyleKey.HOVER_BRIGHTEN,
                         StyleKey.HOVER_SCALE,
-                        StyleKey.BG_SURFACE,
                         StyleKey.FOCUS_RING
                 );
     }

@@ -3,6 +3,7 @@ package com.edgn.ui.css;
 import com.edgn.ui.core.UIElement;
 import com.edgn.ui.css.values.Shadow;
 
+@SuppressWarnings("unused")
 public class CSSStyleApplier {
 
     private CSSStyleApplier() {/* should not be instantiated */}
@@ -10,9 +11,6 @@ public class CSSStyleApplier {
     public static ComputedStyles computeStyles(UIElement element) {
         UIStyleSystem styleSystem = element.getStyleSystem();
         ComputedStyles styles = new ComputedStyles();
-
-        styles.backgroundColor = computeBackgroundColor(element, styleSystem);
-        styles.textColor = computeTextColor(element, styleSystem);
 
         styles.borderRadius = computeBorderRadius(element, styleSystem);
         styles.shadow = computeShadow(element, styleSystem);
@@ -37,90 +35,6 @@ public class CSSStyleApplier {
         styles.hasFocusRing = element.hasClass(StyleKey.FOCUS_RING);
 
         return styles;
-    }
-
-    private static int computeBackgroundColor(UIElement element, UIStyleSystem styleSystem) {
-        StyleKey baseColorKey = null;
-        StyleKey[] colorKeys = {
-                StyleKey.PRIMARY, StyleKey.BG_PRIMARY,
-                StyleKey.SECONDARY, StyleKey.BG_SECONDARY,
-                StyleKey.SUCCESS, StyleKey.BG_SUCCESS,
-                StyleKey.DANGER, StyleKey.BG_DANGER,
-                StyleKey.WARNING, StyleKey.BG_WARNING,
-                StyleKey.INFO, StyleKey.BG_INFO,
-                StyleKey.BG_SURFACE, StyleKey.BG_BACKGROUND, StyleKey.BG_GLASS
-        };
-
-        for (StyleKey key : colorKeys) {
-            if (element.hasClass(key)) {
-                baseColorKey = switch (key) {
-                    case PRIMARY, BG_PRIMARY -> StyleKey.PRIMARY;
-                    case SECONDARY, BG_SECONDARY -> StyleKey.SECONDARY;
-                    case SUCCESS, BG_SUCCESS -> StyleKey.SUCCESS;
-                    case DANGER, BG_DANGER -> StyleKey.DANGER;
-                    case WARNING, BG_WARNING -> StyleKey.WARNING;
-                    case INFO, BG_INFO -> StyleKey.INFO;
-                    case BG_SURFACE -> StyleKey.SURFACE;
-                    case BG_BACKGROUND -> StyleKey.BACKGROUND;
-                    case BG_GLASS -> StyleKey.GLASS;
-                    default -> null;
-                };
-                break;
-            }
-        }
-
-        StyleKey opacityKey = null;
-        StyleKey[] opacityKeys = {
-                StyleKey.BG_OPACITY_0, StyleKey.BG_OPACITY_1, StyleKey.BG_OPACITY_2, StyleKey.BG_OPACITY_3,
-                StyleKey.BG_OPACITY_4, StyleKey.BG_OPACITY_5, StyleKey.BG_OPACITY_6, StyleKey.BG_OPACITY_7,
-                StyleKey.BG_OPACITY_8, StyleKey.BG_OPACITY_9, StyleKey.BG_OPACITY_10, StyleKey.BG_OPACITY_11,
-                StyleKey.BG_OPACITY_12, StyleKey.BG_OPACITY_13, StyleKey.BG_OPACITY_14, StyleKey.BG_OPACITY_15
-        };
-
-        for (StyleKey key : opacityKeys) {
-            if (element.hasClass(key)) {
-                opacityKey = key;
-                break;
-            }
-        }
-
-        if (baseColorKey != null) {
-            int baseColor = styleSystem.getColor(baseColorKey);
-            if (opacityKey != null) {
-                float opacity = styleSystem.getOpacity(opacityKey);
-                return UIStyleSystem.applyOpacity(baseColor, opacity);
-            } else {
-                return baseColor;
-            }
-        } else if (opacityKey != null) {
-            float opacity = styleSystem.getOpacity(opacityKey);
-            return UIStyleSystem.applyOpacity(0xFF000000, opacity);
-        }
-
-        return 0;
-    }
-
-    private static int computeTextColor(UIElement element, UIStyleSystem styleSystem) {
-        StyleKey[] textKeys = {
-                StyleKey.TEXT_WHITE, StyleKey.PRIMARY, StyleKey.SECONDARY,
-                StyleKey.SUCCESS, StyleKey.DANGER, StyleKey.WARNING, StyleKey.INFO
-        };
-
-        for (StyleKey key : textKeys) {
-            if (element.hasClass(key)) {
-                return switch (key) {
-                    case TEXT_WHITE -> 0xFFFFFFFF;
-                    case PRIMARY -> styleSystem.getColor(StyleKey.PRIMARY);
-                    case SECONDARY -> styleSystem.getColor(StyleKey.SECONDARY);
-                    case SUCCESS -> styleSystem.getColor(StyleKey.SUCCESS);
-                    case DANGER -> styleSystem.getColor(StyleKey.DANGER);
-                    case WARNING -> styleSystem.getColor(StyleKey.WARNING);
-                    case INFO -> styleSystem.getColor(StyleKey.INFO);
-                    default -> 0xFF000000;
-                };
-            }
-        }
-        return 0xFF000000;
     }
 
     private static int computeBorderRadius(UIElement element, UIStyleSystem styleSystem) {

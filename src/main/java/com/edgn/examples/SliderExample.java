@@ -39,8 +39,7 @@ public final class SliderExample extends BaseTemplate {
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_8,
                         StyleKey.P_4,
-                        StyleKey.M_5,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.M_5
                 );
 
         SliderItem<Integer> intSliderItem = new SliderItem<>(uiSystem, 0, 0, 160, 28, new IntSliderModel())
@@ -74,7 +73,7 @@ public final class SliderExample extends BaseTemplate {
         ListContainer list = new ListContainer(uiSystem, 0, 0, this.width, 200)
                 .setScrollable(true)
                 .setScrollAxes(true, false)
-                .addClass(StyleKey.P_4, StyleKey.GAP_3, StyleKey.BG_BACKGROUND);
+                .addClass(StyleKey.P_4, StyleKey.GAP_3);
 
         for (int i = 0; i < 200; i++) {
             SliderItem<Double> slider = new SliderItem<>(uiSystem, 0, 0, 160, 28, new DoubleSliderModel())

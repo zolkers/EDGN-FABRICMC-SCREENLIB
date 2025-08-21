@@ -33,15 +33,12 @@ public final class GridContainerExample extends BaseTemplate {
                         StyleKey.JUSTIFY_START,
                         StyleKey.GAP_3,
                         StyleKey.P_3,
-                        StyleKey.BG_SURFACE,
                         StyleKey.SHADOW_SM
                 );
 
         ButtonItem back = new ButtonItem(uiSystem, 0, 0, 120, 28)
                 .withText(new TextComponent("Back").color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                 .addClass(
-                        StyleKey.SECONDARY,
-                        StyleKey.TEXT_WHITE,
                         StyleKey.ROUNDED_MD,
                         StyleKey.P_2,
                         StyleKey.HOVER_SCALE,
@@ -65,15 +62,13 @@ public final class GridContainerExample extends BaseTemplate {
                 .setColumns(10)
                 .setScrollable(true)
                 .setScrollAxes(true, true)
-                .addClass(StyleKey.P_4, StyleKey.GAP_4, StyleKey.BG_BACKGROUND);
+                .addClass(StyleKey.P_4, StyleKey.GAP_4);
 
         for (int i = 1; i <= 300; i++) {
             ButtonItem tile = new ButtonItem(uiSystem, 0, 0, 220, 80)
                     .withText(new TextComponent("Card " + i)
                             .color(ColorUtils.NamedColor.WHITESMOKE.toInt()))
                     .addClass(
-                            StyleKey.INFO,
-                            StyleKey.TEXT_WHITE,
                             StyleKey.ROUNDED_LG,
                             StyleKey.P_3,
                             StyleKey.SHADOW_MD,

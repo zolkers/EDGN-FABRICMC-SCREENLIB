@@ -9,6 +9,7 @@ import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
+import com.edgn.ui.utils.ColorUtils;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -30,7 +31,7 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
 
     protected AbstractTextItem(UIStyleSystem styleSystem, int x, int y, int w, int h) {
         super(styleSystem, x, y, w, h);
-        addClass(StyleKey.BG_SURFACE, StyleKey.ROUNDED_MD, StyleKey.P_2);
+        addClass(StyleKey.ROUNDED_MD, StyleKey.P_2);
     }
 
     protected AbstractTextItem(UIStyleSystem styleSystem, int x, int y, int w, int h, String placeholder) {
@@ -209,7 +210,7 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
 
     private void renderBackground(DrawContext context, int cx, int cy, int cw, int ch) {
         int baseBg = getBgColor();
-        if (baseBg == 0) baseBg = styleSystem.getColor(StyleKey.SURFACE);
+        if (baseBg == 0) baseBg = ColorUtils.NamedColor.GRAY.toInt();
         int bg = backgroundForState(baseBg);
         int radius = getBorderRadius();
         Shadow shadow = getShadow();
@@ -219,7 +220,7 @@ public abstract class AbstractTextItem<T extends AbstractTextItem<T>> extends Ba
         DrawingUtils.drawRoundedRect(context, cx, cy, cw, ch, radius, bg);
 
         if (isFocused() && hasClass(StyleKey.FOCUS_RING)) {
-            int focusColor = styleSystem.getColor(StyleKey.PRIMARY_LIGHT);
+            int focusColor = ColorUtils.NamedColor.DIMGRAY.toInt();
             DrawingUtils.drawRoundedRectBorder(context, cx - 2, cy - 2, cw + 4, ch + 4, radius + 2, focusColor, 2);
         }
     }

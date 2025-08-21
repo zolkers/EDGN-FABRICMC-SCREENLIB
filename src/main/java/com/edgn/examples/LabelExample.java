@@ -37,8 +37,7 @@ public final class LabelExample extends BaseTemplate {
                         StyleKey.JUSTIFY_BETWEEN,
                         StyleKey.GAP_4,
                         StyleKey.P_2,
-                        StyleKey.M_4,
-                        StyleKey.BG_BACKGROUND
+                        StyleKey.M_4
                 );
 
         LabelItem labelItem = new LabelItem(uiSystem, 0, 0, "IF YOU FIND ANY BUG CONTACT edgn ON DISCORD")

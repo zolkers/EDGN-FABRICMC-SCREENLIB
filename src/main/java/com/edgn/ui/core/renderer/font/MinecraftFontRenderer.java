@@ -1,5 +1,6 @@
-package com.edgn.ui.core.container.components.font;
+package com.edgn.ui.core.renderer.font;
 
+import com.edgn.ui.core.renderer.FontRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;

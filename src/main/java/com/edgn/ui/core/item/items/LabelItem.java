@@ -1,14 +1,14 @@
 package com.edgn.ui.core.item.items;
 
 import com.edgn.ui.core.container.components.TextComponent;
-import com.edgn.ui.core.container.components.font.FontRenderer;
+import com.edgn.ui.core.renderer.FontRenderer;
 import com.edgn.ui.core.item.BaseItem;
 import com.edgn.ui.css.UIStyleSystem;
 import com.edgn.ui.utils.DrawingUtils;
 import net.minecraft.client.gui.DrawContext;
 
 
-@SuppressWarnings({"unused", "UnusedReturnValue"})
+@SuppressWarnings({"unused", "UnusedReturnValue", "unchecked"})
 public class LabelItem extends BaseItem {
 
     protected TextComponent textComponent;
@@ -16,7 +16,7 @@ public class LabelItem extends BaseItem {
     public LabelItem(UIStyleSystem styleSystem, int x, int y, int w, int h, String text) {
         super(styleSystem, x, y, w, h);
         this.textComponent = new TextComponent(text, this.fontRenderer)
-                .verticalAlign(TextComponent.VerticalAlign.MIDDLE); // Comportement par défaut
+                .verticalAlign(TextComponent.VerticalAlign.MIDDLE);
     }
 
     public LabelItem(UIStyleSystem styleSystem, int x, int y, String text) {

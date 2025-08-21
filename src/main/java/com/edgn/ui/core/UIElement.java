@@ -1,7 +1,7 @@
 package com.edgn.ui.core;
 
 import com.edgn.ui.core.container.components.TextComponent;
-import com.edgn.ui.core.container.components.font.FontRenderer;
+import com.edgn.ui.core.renderer.FontRenderer;
 import com.edgn.ui.css.CSSStyleApplier;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;

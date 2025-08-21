@@ -1,7 +1,7 @@
 package com.edgn.ui.core.item.items;
 
 import com.edgn.ui.core.container.components.TextComponent;
-import com.edgn.ui.core.container.components.font.FontRenderer;
+import com.edgn.ui.core.renderer.FontRenderer;
 import com.edgn.ui.core.item.BaseItem;
 import com.edgn.ui.css.StyleKey;
 import com.edgn.ui.css.UIStyleSystem;
@@ -9,7 +9,6 @@ import com.edgn.ui.css.values.Shadow;
 import com.edgn.ui.layout.LayoutConstraints;
 import com.edgn.ui.layout.ZIndex;
 import com.edgn.ui.utils.DrawingUtils;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
 @SuppressWarnings({"unused", "unchecked", "UnusedReturnValue"})

@@ -12,6 +12,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
 public final class LabelExample extends BaseTemplate {
+
     public LabelExample(Screen prevScreen) {
         super(Text.literal("LabelExample"), prevScreen);
     }

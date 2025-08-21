@@ -93,6 +93,11 @@ public final class FlexContainerExample extends BaseTemplate {
                 .onClick(() -> MinecraftClient.getInstance().setScreen(new LabelExample(this)))
         );
 
+        content.addChild(button(uiSystem, "Boolean example")
+                .addClass(StyleKey.FLEX_BASIS_25, StyleKey.FLEX_GROW_1, StyleKey.FLEX_SHRINK_1)
+                .onClick(() -> MinecraftClient.getInstance().setScreen(new BooleanExample(this)))
+        );
+
         return content;
     }
 

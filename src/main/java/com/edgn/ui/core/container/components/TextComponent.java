@@ -1,7 +1,7 @@
 package com.edgn.ui.core.container.components;
 
-import com.edgn.ui.core.container.components.font.FontRenderer;
-import com.edgn.ui.core.container.components.font.MinecraftFontRenderer;
+import com.edgn.ui.core.renderer.FontRenderer;
+import com.edgn.ui.core.renderer.font.MinecraftFontRenderer;
 import net.minecraft.client.gui.DrawContext;
 
 import java.awt.*;
@@ -155,7 +155,6 @@ public class TextComponent implements Component {
 
     private void renderPerChar(DrawContext context, String displayText, int x, int y, int charOffset) {
         int charX = x;
-        int charY = y;
         int i = 0;
         int visIndex = 0;
         while (i < displayText.length()) {
@@ -163,7 +162,7 @@ public class TextComponent implements Component {
             int len = Character.charCount(cp);
             String charStr = new String(Character.toChars(cp));
             int color = getCurrentColor(visIndex + charOffset);
-            int cy = charY;
+            int cy = y;
             if (activeAnimations.contains(AnimationType.WAVE)) {
                 float t = (System.currentTimeMillis() - animationStartTime) / 1000.0f;
                 cy += (int) (Math.sin(t * animationSpeed * waveFrequency + (visIndex + charOffset) * 0.5f) * waveAmplitude);

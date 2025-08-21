@@ -1,4 +1,4 @@
-package com.edgn.ui.core.container.components.font;
+package com.edgn.ui.core.renderer;
 
 import net.minecraft.client.gui.DrawContext;
 import java.util.List;

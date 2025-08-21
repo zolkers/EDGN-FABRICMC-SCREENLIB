@@ -32,14 +32,14 @@ public class EdgnScreenLib implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		if(FabricLoader.getInstance().isDevelopmentEnvironment()) {
-			KeyBindingHelper.registerKeyBinding(openExampleScreenKey);
+		if(!FabricLoader.getInstance().isDevelopmentEnvironment()) return;
 
-			ClientTickEvents.END_CLIENT_TICK.register(client -> {
-				if (openExampleScreenKey.wasPressed()) {
-					client.setScreen(new FlexContainerExample(null));
-				}
-			});
-		}
+		KeyBindingHelper.registerKeyBinding(openExampleScreenKey);
+
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (openExampleScreenKey.wasPressed()) {
+				client.setScreen(new FlexContainerExample(null));
+			}
+		});
 	}
 }

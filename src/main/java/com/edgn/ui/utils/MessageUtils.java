@@ -23,6 +23,12 @@ public class MessageUtils {
 
     private MessageUtils() { /* utility class */ }
 
+    /**
+     * Method to send a message to a player
+     * @param message the message
+     * @param level info, success, error...
+     */
+
     public static void sendMessageToPlayer(String message, Level level) {
         if(MinecraftClient.getInstance().player == null) return;
         String tag = "";

@@ -250,4 +250,19 @@ public class ButtonItem extends BaseItem {
         }
         return this;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ButtonItem{text='%s', state=%s, enabled=%b, visible=%b, bounds=[%d,%d,%d,%d], hasText=%b}",
+                getText(),
+                getState(),
+                isEnabled(),
+                isVisible(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight(),
+                hasText()
+        );
+    }
 }

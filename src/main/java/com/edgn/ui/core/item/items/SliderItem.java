@@ -187,4 +187,20 @@ public class SliderItem<N extends Number> extends BaseItem {
         String s = formatter.format(model.get());
         this.valueText = this.valueText.cloneWithNewText(s);
     }
+
+    @Override
+    public String toString() {
+        return String.format("SliderItem{value=%s, min=%s, max=%s, position=%s, bounds=[%d,%d,%d,%d], visible=%b, enabled=%b}",
+                model.get(),
+                model.min(),
+                model.max(),
+                valuePosition,
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight(),
+                isVisible(),
+                isEnabled()
+        );
+    }
 }

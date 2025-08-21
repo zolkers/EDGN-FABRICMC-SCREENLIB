@@ -313,4 +313,22 @@ public class ScrollContainer extends BaseContainer {
         clampScroll();
         return used;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ScrollContainer{scroll=[%d,%d], content=[%d,%d], viewport=[%d,%d,%d,%d], scrollbars=[v=%b, h=%b], children=%d, visibleChildren=%d}",
+                scrollX,
+                scrollY,
+                contentWidth,
+                contentHeight,
+                getViewportX(),
+                getViewportY(),
+                getViewportWidth(),
+                getViewportHeight(),
+                verticalScroll,
+                horizontalScroll,
+                getChildren().size(),
+                getChildren().stream().filter(UIElement::isVisible).count()
+        );
+    }
 }

@@ -186,4 +186,22 @@ public class TextFieldItem extends AbstractTextItem<TextFieldItem> {
         }
         model.setCaret(best);
     }
+
+    @Override
+    public String toString() {
+        return String.format("TextFieldItem{text='%s', length=%d, password=%b, caret=%d, selection=[%d,%d], visible=%b, enabled=%b, bounds=[%d,%d,%d,%d]}",
+                model.isPassword() ? "***" : model.getText(),
+                model.length(),
+                model.isPassword(),
+                model.getCaret(),
+                model.getSelectionStart(),
+                model.getSelectionEnd(),
+                isVisible(),
+                isEnabled(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight()
+        );
+    }
 }

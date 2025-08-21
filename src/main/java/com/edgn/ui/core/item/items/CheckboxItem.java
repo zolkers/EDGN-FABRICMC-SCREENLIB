@@ -386,4 +386,19 @@ public class CheckboxItem extends BaseItem {
         int lw;
         int lh;
     }
+
+    @Override
+    public String toString() {
+        return String.format("CheckboxItem{checked=%b, label='%s', state=%s, enabled=%b, visible=%b, bounds=[%d,%d,%d,%d]}",
+                isChecked(),
+                label != null ? label.getText() : "null",
+                getState(),
+                isEnabled(),
+                isVisible(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight()
+        );
+    }
 }

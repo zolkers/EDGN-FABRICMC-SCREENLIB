@@ -169,4 +169,19 @@ public class ScrollbarItem extends BaseItem {
         if (orientation == Orientation.VERTICAL) model.setScrollY(value);
         else model.setScrollX(value);
     }
+
+    @Override
+    public String toString() {
+        return String.format("ScrollbarItem{orientation=%s, visible=%b, bounds=[%d,%d,%d,%d], model=[content=%d, viewport=%d, scroll=%d]}",
+                orientation,
+                isVisible(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight(),
+                orientation == Orientation.VERTICAL ? model.getContentHeight() : model.getContentWidth(),
+                orientation == Orientation.VERTICAL ? model.getViewportHeight() : model.getViewportWidth(),
+                orientation == Orientation.VERTICAL ? model.getScrollY() : model.getScrollX()
+        );
+    }
 }

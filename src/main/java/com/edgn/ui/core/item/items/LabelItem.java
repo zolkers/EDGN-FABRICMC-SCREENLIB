@@ -94,4 +94,17 @@ public class LabelItem extends BaseItem {
         }
         return this;
     }
+
+    @Override
+    public String toString() {
+        return String.format("LabelItem{text='%s', bounds=[%d,%d,%d,%d], visible=%b, styled=%b}",
+                textComponent != null ? textComponent.getText() : "null",
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight(),
+                isVisible(),
+                textComponent != null && textComponent.hasCustomStyling()
+        );
+    }
 }

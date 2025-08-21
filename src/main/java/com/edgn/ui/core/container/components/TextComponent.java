@@ -505,4 +505,19 @@ public class TextComponent implements Component {
         this.font = font;
         return this;
     }
+
+    @Override
+    public String toString() {
+        return String.format("TextComponent{text='%s', length=%d, color=0x%08X, align=%s, vAlign=%s, overflow=%s, effects=%s, animations=%s, styled=%b}",
+                text != null ? (text.length() > 20 ? text.substring(0, 17) + "..." : text) : "null",
+                text != null ? text.length() : 0,
+                getColor(),
+                textAlign,
+                verticalAlign,
+                overflowMode,
+                effectType + (effectType != EffectType.SOLID ? "(" + effectMode + ")" : ""),
+                activeAnimations.toString(),
+                hasCustomStyling()
+        );
+    }
 }

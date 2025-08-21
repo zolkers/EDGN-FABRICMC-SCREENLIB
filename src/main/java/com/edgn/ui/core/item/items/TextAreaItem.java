@@ -371,4 +371,22 @@ public class TextAreaItem extends AbstractTextItem<TextAreaItem> {
         model.setCaret(Math.clamp(global, 0, model.length()));
         ensureCaretVisible();
     }
+
+    @Override
+    public String toString() {
+        return String.format("TextAreaItem{text='%s', length=%d, caret=%d, selection=[%d,%d], wrap=%b, visible=%b, enabled=%b, bounds=[%d,%d,%d,%d]}",
+                model.getText(),
+                model.length(),
+                model.getCaret(),
+                model.getSelectionStart(),
+                model.getSelectionEnd(),
+                wrap,
+                isVisible(),
+                isEnabled(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight()
+        );
+    }
 }

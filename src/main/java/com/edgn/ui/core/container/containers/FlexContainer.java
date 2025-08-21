@@ -120,8 +120,8 @@ public class FlexContainer extends BaseContainer {
         );
     }
 
-    private List<Line> maybeScaleLines(List<Line> lines, double k, boolean row) {
-        return uniformScaleEnabled ? scaleLinesForUniform(lines, k, row) : lines;
+    private List<Line> maybeScaleLines(List<Line> lines, double k) {
+        return uniformScaleEnabled ? scaleLinesForUniform(lines, k) : lines;
     }
 
     private List<ItemBox> collectMetricsAuto(Line line, int maxMain, boolean row, double k) {
@@ -141,7 +141,7 @@ public class FlexContainer extends BaseContainer {
     }
 
     private void layoutAllLines(List<Line> lines, ContentBox cb, int maxMain, int maxCross, int gap, boolean row, double k) {
-        List<Line> scaledLines = maybeScaleLines(lines, k, row);
+        List<Line> scaledLines = maybeScaleLines(lines, k);
         List<Integer> fittedCross = fitCrossSizes(scaledLines, maxCross, gap);
 
         int baseCross = row ? cb.y : cb.x;
@@ -362,7 +362,7 @@ public class FlexContainer extends BaseContainer {
             int naturalCross = isRow() ? box.node().getHeight() : box.node().getWidth();
             int stretched = hasClass(StyleKey.ITEMS_STRETCH) ? Math.max(0, lineCrossSize - box.mCrossStart() - box.mCrossEnd()) : naturalCross;
             int childCross = Math.max(0, stretched);
-            int crossPos = computeCrossPos(lineCrossStart, lineCrossSize, childCross, box, isRow());
+            int crossPos = computeCrossPos(lineCrossStart, lineCrossSize, childCross, box);
             int marginForStart = startMarginForDirection(box.node(), isRow(), isReverse());
             int itemStartPos = isReverse() ? (mainCursor - total + marginForStart) : (mainCursor + marginForStart);
 
@@ -425,7 +425,7 @@ public class FlexContainer extends BaseContainer {
         int naturalCross = row ? box.node().getHeight() : box.node().getWidth();
         int scaledNatural = scaleRound(k, naturalCross);
         int stretched = itemsStretch ? Math.max(0, lineCrossSize - box.mCrossStart() - box.mCrossEnd()) : scaledNatural;
-        return enforceMinMaxCross(stretched, box.node(), row);
+        return enforceMinMaxCross(stretched);
     }
 
     private int computeCrossPosScaled(boolean itemsCenter, boolean itemsEnd,
@@ -457,7 +457,7 @@ public class FlexContainer extends BaseContainer {
         return wrapReverse() ? (crossCursor - lineCross - lineGap) : (crossCursor + lineCross + lineGap);
     }
 
-    private int computeCrossPos(int lineStart, int lineCrossSize, int childCross, ItemBox box, boolean row) {
+    private int computeCrossPos(int lineStart, int lineCrossSize, int childCross, ItemBox box) {
         if (hasClass(StyleKey.ITEMS_CENTER)) {
             return lineStart + (lineCrossSize - childCross) / 2 + box.mCrossStart();
         } else if (hasClass(StyleKey.ITEMS_END)) {
@@ -551,7 +551,7 @@ public class FlexContainer extends BaseContainer {
         return (int) Math.floor(k * v);
     }
 
-    private List<Line> scaleLinesForUniform(List<Line> lines, double k, boolean row) {
+    private List<Line> scaleLinesForUniform(List<Line> lines, double k) {
         List<Line> out = new ArrayList<>(lines.size());
         for (Line line : lines) {
             int scaledCross = scaleRound(k, line.crossSize());
@@ -560,7 +560,7 @@ public class FlexContainer extends BaseContainer {
         return out;
     }
 
-    private int enforceMinMaxCross(int value, UIElement n, boolean row) {
+    private int enforceMinMaxCross(int value) {
         return Math.max(0, value);
     }
 
@@ -603,5 +603,21 @@ public class FlexContainer extends BaseContainer {
     public FlexContainer setUniformScaleEnabled(boolean enabled) {
         this.uniformScaleEnabled = enabled;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("FlexContainer{children=%d, visibleChildren=%d, row=%s, reverse=%s, wrap=%s, uniformScale=%s, bounds=[%d,%d,%d,%d]}",
+                getChildren().size(),
+                getChildren().stream().filter(UIElement::isVisible).count(),
+                isRow(),
+                isReverse(),
+                wrapEnabled(),
+                uniformScaleEnabled,
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight()
+        );
     }
 }

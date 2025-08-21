@@ -135,4 +135,18 @@ public class SwitchItem extends BaseItem {
         super.setFontRenderer(fontRenderer);
         return this;
     }
+
+    @Override
+    public String toString() {
+        return String.format("SwitchItem{state=%s, on=%b, enabled=%b, visible=%b, bounds=[%d,%d,%d,%d]}",
+                getState(),
+                isOn(),
+                isEnabled(),
+                isVisible(),
+                getCalculatedX(),
+                getCalculatedY(),
+                getCalculatedWidth(),
+                getCalculatedHeight()
+        );
+    }
 }

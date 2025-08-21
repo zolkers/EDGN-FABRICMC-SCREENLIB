@@ -32,9 +32,9 @@ public class ListContainer extends ScrollContainer {
         int gap = getGap();
 
         if (orientation == Orientation.VERTICAL) {
-            layoutVertical(kids, contentX, contentY, vw, vh, gap);
+            layoutVertical(kids, contentX, contentY, vw, gap);
         } else {
-            layoutHorizontal(kids, contentX, contentY, vw, vh, gap);
+            layoutHorizontal(kids, contentX, contentY, vh, gap);
         }
     }
 
@@ -43,7 +43,7 @@ public class ListContainer extends ScrollContainer {
         return c == null || !c.isVisible() || c instanceof ScrollbarItem;
     }
 
-    private void layoutVertical(java.util.List<UIElement> kids, int contentX, int contentY, int vw, int vh, int gap) {
+    private void layoutVertical(java.util.List<UIElement> kids, int contentX, int contentY, int vw, int gap) {
         int yCursor = contentY;
         int prevMB = 0;
 
@@ -67,7 +67,7 @@ public class ListContainer extends ScrollContainer {
         }
     }
 
-    private void layoutHorizontal(java.util.List<UIElement> kids, int contentX, int contentY, int vw, int vh, int gap) {
+    private void layoutHorizontal(java.util.List<UIElement> kids, int contentX, int contentY, int vh, int gap) {
         int xCursor = contentX;
         int prevMR = 0;
 
@@ -107,5 +107,17 @@ public class ListContainer extends ScrollContainer {
         child.getInteractionBounds();
     }
 
-
+    @Override
+    public String toString() {
+        return String.format("ListContainer{orientation=%s, children=%d, visibleChildren=%d, viewport=[%d,%d,%d,%d], gap=%d}",
+                orientation,
+                getChildren().size(),
+                getChildren().stream().filter(UIElement::isVisible).count(),
+                getViewportX(),
+                getViewportY(),
+                getViewportWidth(),
+                getViewportHeight(),
+                getGap()
+        );
+    }
 }

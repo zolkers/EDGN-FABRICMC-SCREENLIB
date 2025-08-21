@@ -72,4 +72,18 @@ public class GridContainer extends ScrollContainer {
             }
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("GridContainer{columns=%d, children=%d, visibleChildren=%d, viewport=[%d,%d,%d,%d], gap=%d}",
+                columns,
+                getChildren().size(),
+                getChildren().stream().filter(UIElement::isVisible).count(),
+                getViewportX(),
+                getViewportY(),
+                getViewportWidth(),
+                getViewportHeight(),
+                getGap()
+        );
+    }
 }

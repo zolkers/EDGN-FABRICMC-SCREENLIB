@@ -14,6 +14,8 @@ import java.util.List;
 @SuppressWarnings({"unchecked"})
 public abstract class BaseContainer extends UIElement implements IContainer {
     protected final List<UIElement> children = new ArrayList<>();
+    protected boolean renderBackgroundEnabled = true;
+    protected Integer backgroundColorOverride = null;
     private UIElement capturedElement = null;
     private int capturedButton = -1;
 
@@ -53,6 +55,29 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         }
         children.clear();
         markConstraintsDirty();
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends IContainer> T setRenderBackground(boolean enabled) {
+        this.renderBackgroundEnabled = enabled;
+        return (T) this;
+    }
+
+    public boolean isRenderBackgroundEnabled() {
+        return renderBackgroundEnabled;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends IContainer> T setBackgroundColor(int argb) {
+        this.backgroundColorOverride = argb;
+        this.renderBackgroundEnabled = true;
+        return (T) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends IContainer> T clearBackgroundColor() {
+        this.backgroundColorOverride = null;
         return (T) this;
     }
 
@@ -233,8 +258,10 @@ public abstract class BaseContainer extends UIElement implements IContainer {
         }
     }
 
-    protected void renderBackground(DrawContext context) {
-        int bgColor = getBgColor();
+    void renderBackground(DrawContext context) {
+        if (!renderBackgroundEnabled) return;
+
+        int bgColor = (backgroundColorOverride != null) ? backgroundColorOverride : getBgColor();
         if (bgColor != 0) {
             int borderRadius = getBorderRadius();
             Shadow shadow = getShadow();
@@ -248,7 +275,6 @@ public abstract class BaseContainer extends UIElement implements IContainer {
                     getCalculatedWidth(), getCalculatedHeight(), borderRadius, bgColor);
         }
     }
-
     private boolean containsInOwnInteractionBounds(double worldX, double worldY) {
         InteractionBounds b = getInteractionBounds();
         if (!b.isValid()) return true;
